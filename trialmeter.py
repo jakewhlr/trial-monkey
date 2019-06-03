@@ -5,6 +5,7 @@ import uuid
 import tabulate
 from pyfiglet import figlet_format
 import re
+import json
 
 class argument:
 	left_name = ''
@@ -67,4 +68,7 @@ async def status(ctx):
 	await status_message.add_reaction('🤺')
 	await status_message.add_reaction('👉')
 
-bot.run('NTg0MTIzNTE0MDMwNzg0NTIz.XPGWGw.d13Vnanchf_QMYJmfjq-uAw9Q0M')
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+bot.run(config['token'])
