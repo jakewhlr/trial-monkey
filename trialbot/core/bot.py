@@ -25,48 +25,53 @@ class argument:
 		outstring = tabulate.tabulate([[], [], []], headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
 		return outstring
 
-bot = commands.Bot(command_prefix='!')
-arguments = []
+class trialbot:
+	bot = commands.Bot(command_prefix='!')
+	# arguments = []
+	token = None
 
-@bot.command()
-async def new_trial(ctx, left, right):
-	left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
-	right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
-	arguments.append(argument(left_split, right_split))
-	left_display = '```\n%s\n```' % figlet_format(arguments[-1].left_name, font='starwars')
-	versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
-	right_display = '```\n%s\n```' % figlet_format(arguments[-1].right_name, font='starwars')
-	status_display = '```\n%s\n```' % arguments[-1].status()
-	print(left_display)
-	await ctx.send(left_display)
-	print(versus_display)
-	await ctx.send(versus_display)
-	print(right_display)
-	await ctx.send(right_display)
-	print(status_display)
-	status_message = await ctx.send(status_display)
-	await status_message.add_reaction('👈')
-	await status_message.add_reaction('🤺')
-	await status_message.add_reaction('👉')
+	def __init__(self, token):
+		self.token = token
+
+	def start(self):
+		self.bot.run(self.token)
+
+	@bot.command()
+	async def new_trial(ctx, left, right):
+		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
+		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
+		current_arg = argument(left_split, right_split)
+		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
+		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
+		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
+		status_display = '```\n%s\n```' % current_arg.status()
+		print(left_display)
+		await ctx.send(left_display)
+		print(versus_display)
+		await ctx.send(versus_display)
+		print(right_display)
+		await ctx.send(right_display)
+		print(status_display)
+		status_message = await ctx.send(status_display)
+		await status_message.add_reaction('👈')
+		await status_message.add_reaction('🤺')
+		await status_message.add_reaction('👉')
 
 
-@bot.command()
-async def status(ctx):
-	left_display = '```\n%s\n```' % figlet_format(arguments[-1].left_name, font='starwars')
-	versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
-	right_display = '```\n%s\n```' % figlet_format(arguments[-1].right_name, font='starwars')
-	status_display = '```\n%s\n```' % arguments[-1].status()
-	print(left_display)
-	await ctx.send(left_display)
-	print(versus_display)
-	await ctx.send(versus_display)
-	print(right_display)
-	await ctx.send(right_display)
-	print(status_display)
-	status_message = await ctx.send(status_display)
-	await status_message.add_reaction('👈')
-	await status_message.add_reaction('🤺')
-	await status_message.add_reaction('👉')
-
-def start(token):
-	bot.run(token)
+	@bot.command()
+	async def status(ctx):
+		left_display = '```\n%s\n```' % figlet_format(arguments[-1].left_name, font='starwars')
+		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
+		right_display = '```\n%s\n```' % figlet_format(arguments[-1].right_name, font='starwars')
+		status_display = '```\n%s\n```' % arguments[-1].status()
+		print(left_display)
+		await ctx.send(left_display)
+		print(versus_display)
+		await ctx.send(versus_display)
+		print(right_display)
+		await ctx.send(right_display)
+		print(status_display)
+		status_message = await ctx.send(status_display)
+		await status_message.add_reaction('👈')
+		await status_message.add_reaction('🤺')
+		await status_message.add_reaction('👉')
