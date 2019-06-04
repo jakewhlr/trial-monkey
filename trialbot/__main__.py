@@ -3,13 +3,12 @@
 import logging
 import json
 
-from core.bot import trialbot
+from core.bot import TrialBot
 
 def main():
         with open('config.json', 'r') as f:
             config = json.load(f)
-        print("starting bot...")
-        bot = trialbot(config['token'])
+        bot = TrialBot(config['token'])
         bot.start()
 
 if __name__ == '__main__':

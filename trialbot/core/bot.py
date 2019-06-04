@@ -25,15 +25,25 @@ class argument:
 		outstring = tabulate.tabulate([[], [], []], headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
 		return outstring
 
-class trialbot:
+class TrialBot:
+	__version__ = '0.0.1'
+
+	client = discord.Client()
 	bot = commands.Bot(command_prefix='!')
 	# arguments = []
 	token = None
 
 	def __init__(self, token):
 		self.token = token
+		try:
+			print('Starting bot...')
+		except:
+			pass
 
 	def start(self):
+		print("running client")
+		self.client.run(self.token)
+		print("running bot")
 		self.bot.run(self.token)
 
 	@bot.command()
