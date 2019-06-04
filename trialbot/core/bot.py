@@ -6,6 +6,7 @@ import tabulate
 from pyfiglet import figlet_format
 import re
 import json
+import asyncio
 
 class argument:
 	left_name = ''
@@ -40,11 +41,12 @@ class TrialBot:
 		except:
 			pass
 
-	def start(self):
-		print("running client")
-		self.client.run(self.token)
+	async def start(self):
 		print("running bot")
-		self.bot.run(self.token)
+		await self.bot.start(self.token)
+
+	def stop(self):
+		self.bot.close()
 
 	@bot.command()
 	async def new_trial(ctx, left, right):

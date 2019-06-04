@@ -3,6 +3,7 @@ import sys
 import os
 import threading
 import pyfiglet
+import asyncio
 
 from core.bot import TrialBot
 
@@ -58,8 +59,11 @@ class Menu:
     def start_bot(self):
         token = input('Secret token:')
         self.bot = TrialBot(token)
-        bot_thread = threading.Thread(target=self.bot.start)
-        # self.bot.start()
+        # bot_thread = threading.Thread(target=self.bot.start)
+        # bot_thread.start()
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.bot.start())
+        loop.close()
         self.status = 'online'
         return
 
