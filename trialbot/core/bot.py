@@ -7,6 +7,8 @@ from pyfiglet import figlet_format
 import re
 import json
 import asyncio
+import random
+from time import sleep
 
 class argument:
 	left_name = ''
@@ -50,6 +52,8 @@ class TrialBot:
 
 	@bot.command()
 	async def new_trial(ctx, left, right):
+		gifs = [line.rstrip('\n') for line in open('gifs.txt')]
+		monkey_gif = random.choice(gifs)
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
 		current_arg = argument(left_split, right_split)
@@ -57,6 +61,8 @@ class TrialBot:
 		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
 		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
 		status_display = '```\n%s\n```' % current_arg.status()
+		await ctx.send(monkey_gif)
+		sleep(random.randint(3,10))
 		print(left_display)
 		await ctx.send(left_display)
 		print(versus_display)
@@ -64,6 +70,7 @@ class TrialBot:
 		print(right_display)
 		await ctx.send(right_display)
 		print(status_display)
+		print(monkey_gif)
 		status_message = await ctx.send(status_display)
 		await status_message.add_reaction('👈')
 		await status_message.add_reaction('🤺')
