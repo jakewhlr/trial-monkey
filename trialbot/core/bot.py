@@ -9,29 +9,38 @@ import json
 import asyncio
 import random
 from time import sleep
+import logging
+
+logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
 
 class argument:
 	left_name = ''
 	right_name = ''
 	name = ''
+	standings = {}
 	left = []
 	right = []
 	fence = []
-	standings = []
+	status_message = None
 	def __init__(self, left, right):
 		self.id = str(uuid.uuid4())
-		self.left_name = left
-		self.right_name = right
+		self.left_name = left.capitalize()
+		self.right_name = right.capitalize()
 		self.name = '%s v. %s' % (left.title(), right.title())
-		print('creating argument:', self.left_name, self.right_name, self.id)
+		self.standings['left'] = []
+		self.standings['fence'] = []
+		self.standings['right'] = []
+		logging.info('Creating new argument (%s): %s v. %s' % (self.id, self.left_name, self.right_name))
 
 	def __str__(self):
 		return self.name
 
 	def status(self):
-		self.standings = [self.left, self.fence, self.right]
-		rotated90 = zip(*self.standings[::-1])
-		outstring = tabulate.tabulate(rotated90, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
+		logging.info(self.left)
+		logging.info(self.fence)
+		logging.info(self.right)
+		logging.info(self.standings)
+		outstring = tabulate.tabulate(self.standings, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
 		return outstring
 
 class TrialBot:
@@ -45,56 +54,37 @@ class TrialBot:
 	def __init__(self, token):
 		self.token = token
 		try:
-			print('Starting bot...')
+			logging.info('Starting bot...')
 		except:
 			pass
 
 	async def start(self):
-		print("running bot")
+		logging.info("Starting TrialBot.")
 		await self.bot.start(self.token)
 
 	def stop(self):
 		self.bot.close()
 
-
 	@bot.event
-	async def on_message(message):
-		def check(reaction, user):
-			return user == message.author and str(reaction.emoji)
-
-		async def vote():
-			if message.content.startswith('```\n+-------+-------------+-------+'):
-				channel = message.channel
-				current_arg = TrialBot.arguments[-1]
-				try:
-					reaction, user = await TrialBot.bot.wait_for('reaction_add', timeout=15.0, check=check)
-				except asyncio.TimeoutError:
-					print('Stopping...')
-				else:
-					# await channel.send(str(reaction) + ' ' + str(user))
+	async def on_reaction_add(reaction, user):
+		current_arg = TrialBot.arguments[-1]
+		try:
+			if current_arg.status_message.id == reaction.message.id:
+				if user.id != reaction.message.author.id:
+					for key in current_arg.standings:
+						if user.name in current_arg.standings[key]:
+							current_arg.standings[key].remove(user.name)
 					if str(reaction) == '👈':
-						print(reaction)
-						if user in current_arg.left:
-							print(user, "in left")
-							filter(lambda a: a != user, current_arg.left)
-						current_arg.left.append(user)
-					if str(reaction) == '🤺':
-						print(reaction)
-						if str(user) in current_arg.fence:
-							print(user, "on fence")
-							filter(lambda a: a != user, current_arg.fence)
-						current_arg.fence.append(user)
-					if str(reaction) == '👉':
-						print(reaction)
-						if user in current_arg.right:
-							print(right, 'in right')
-							filter(lambda a: a != user, current_arg.right)
-						current_arg.right.append(user)
-						
-					print(TrialBot.arguments[-1].status())
-					await vote()
-		await vote()
-		await TrialBot.bot.process_commands(message)
+						current_arg.standings['left'].append(user.name)
+					elif str(reaction) == '🤺':
+						current_arg.standings['fence'].append(user.name)
+					elif str(reaction) == '👉':
+						current_arg.standings['right'].append(user.name)
+					await reaction.remove(user)
+					await current_arg.status_message.edit(content='```\n%s```' % current_arg.status())
+		except Exception as e:
+			logging.error(e)
+			return
 
 	@bot.command()
 	async def new_trial(ctx, left, right):
@@ -110,34 +100,23 @@ class TrialBot:
 		status_display = '```\n%s\n```' % current_arg.status()
 		await ctx.send(monkey_gif)
 		sleep(random.randint(3,10))
-		print(left_display)
 		await ctx.send(left_display)
-		print(versus_display)
 		await ctx.send(versus_display)
-		print(right_display)
 		await ctx.send(right_display)
-		print(status_display)
-		print(monkey_gif)
-		status_message = await ctx.send(status_display)
-		await status_message.add_reaction('👈')
-		await status_message.add_reaction('🤺')
-		await status_message.add_reaction('👉')
+		current_arg.status_message = await ctx.send(status_display)
+		await current_arg.status_message.add_reaction('👈')
+		sleep(0.5)
+		await current_arg.status_message.add_reaction('🤺')
+		sleep(0.5)
+		await current_arg.status_message.add_reaction('👉')
 
 	@bot.command()
 	async def status(ctx):
 		current_arg = TrialBot.arguments[-1]
-		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
-		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
-		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
 		status_display = '```\n%s\n```' % current_arg.status()
-		print(left_display)
-		await ctx.send(left_display)
-		print(versus_display)
-		await ctx.send(versus_display)
-		print(right_display)
-		await ctx.send(right_display)
-		print(status_display)
-		status_message = await ctx.send(status_display)
-		await status_message.add_reaction('👈')
-		await status_message.add_reaction('🤺')
-		await status_message.add_reaction('👉')
+		current_arg.status_message = await ctx.send('%s v. %s\n%s' % (current_arg.left_name, current_arg.right_name, status_display))
+		await current_arg.status_message.add_reaction('👈')
+		sleep(0.5)
+		await current_arg.status_message.add_reaction('🤺')
+		sleep(0.5)
+		await current_arg.status_message.add_reaction('👉')
