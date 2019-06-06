@@ -4,6 +4,7 @@ import os
 import threading
 import pyfiglet
 import asyncio
+import json
 
 from core.bot import TrialBot
 
@@ -11,9 +12,10 @@ class Menu:
     def __init__(self):
         self.status = 'offline'
         self.choices = {
-            '1': self.start_bot,
-            '2': self.stop_bot,
-            '3': self.exit,
+            '1': self.start_bot_config,
+            '2': self.start_bot_token,
+            '3': self.stop_bot,
+            '4': self.exit,
         }
 
     def print_menu(self):
@@ -33,9 +35,10 @@ class Menu:
 
         status_string = 'Status: %s' % self.status
         menu_entries = '\n'.join([
-            '1. Start bot',
-            '2. Stop bot',
-            '3. Exit'
+            '1. Start bot (config)',
+            '2. Start bot (token)',
+            '3. Stop bot',
+            '4. Exit'
         ])
         # os.system('clear')
 
@@ -56,7 +59,21 @@ class Menu:
             else:
                 print('Invalid option')
 
-    def start_bot(self):
+    def start_bot_config(self):
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            self.bot = TrialBot(config['token'])
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(self.bot.start())
+            loop.close()
+            self.status = 'online'
+            return
+        except:
+            print('config.json not found.')
+            return
+
+    def start_bot_token(self):
         token = input('Secret token:')
         self.bot = TrialBot(token)
         # bot_thread = threading.Thread(target=self.bot.start)
