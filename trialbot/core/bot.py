@@ -40,8 +40,10 @@ class argument:
 		logging.info(self.fence)
 		logging.info(self.right)
 		logging.info(self.standings)
-		outstring = tabulate.tabulate(self.standings, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
-		return outstring
+		embed = {}
+		embed['title'] = '%s v. %s' % (self.left_name, self.right_name)
+		embed['description'] = '```%s```' % tabulate.tabulate(self.standings, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
+		return discord.Embed.from_dict(embed)
 
 class TrialBot:
 	__version__ = '0.0.1'
@@ -81,7 +83,7 @@ class TrialBot:
 					elif str(reaction) == '👉':
 						current_arg.standings['right'].append(user.name)
 					await reaction.remove(user)
-					await current_arg.status_message.edit(content='```\n%s```' % current_arg.status())
+					await current_arg.status_message.edit(embed=current_arg.status())
 		except Exception as e:
 			logging.error(e)
 			return
@@ -97,13 +99,13 @@ class TrialBot:
 		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
 		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
 		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
-		status_display = '```\n%s\n```' % current_arg.status()
+		# status_display = '```\n%s\n```' % current_arg.status()
 		await ctx.send(monkey_gif)
 		sleep(random.randint(3,10))
 		await ctx.send(left_display)
 		await ctx.send(versus_display)
 		await ctx.send(right_display)
-		current_arg.status_message = await ctx.send(status_display)
+		current_arg.status_message = await ctx.send(embed = current_arg.status())
 		await current_arg.status_message.add_reaction('👈')
 		sleep(0.5)
 		await current_arg.status_message.add_reaction('🤺')
@@ -113,10 +115,18 @@ class TrialBot:
 	@bot.command()
 	async def status(ctx):
 		current_arg = TrialBot.arguments[-1]
-		status_display = '```\n%s\n```' % current_arg.status()
-		current_arg.status_message = await ctx.send('%s v. %s\n%s' % (current_arg.left_name, current_arg.right_name, status_display))
+		await current_arg.status_message.delete()
+		current_arg.status_message = await ctx.send(embed = current_arg.status())
 		await current_arg.status_message.add_reaction('👈')
 		sleep(0.5)
 		await current_arg.status_message.add_reaction('🤺')
 		sleep(0.5)
 		await current_arg.status_message.add_reaction('👉')
+
+	@bot.command()
+	async def embed(ctx):
+		current_arg = TrialBot.arguments[-1]
+		embed = {}
+		embed['title'] = '%s v. %s' % (current_arg.left_name, current_arg.right_name)
+		embed['description'] = '```\n%s```' % current_arg.status()
+		await ctx.send(embed=discord.Embed.from_dict(to_embed))
