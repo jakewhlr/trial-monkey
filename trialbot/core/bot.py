@@ -10,7 +10,9 @@ import asyncio
 import random
 from time import sleep
 import logging
+import os
 
+BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
 
 class argument:
@@ -90,7 +92,8 @@ class TrialBot:
 
 	@bot.command()
 	async def new_trial(ctx, left, right):
-		gifs = [line.rstrip('\n') for line in open('gifs.txt')]
+		print(BASE_DIR)
+		gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'gifs.txt'))]
 		monkey_gif = random.choice(gifs)
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
