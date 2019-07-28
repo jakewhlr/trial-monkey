@@ -132,4 +132,8 @@ class TrialBot:
 		embed = {}
 		embed['title'] = '%s v. %s' % (current_arg.left_name, current_arg.right_name)
 		embed['description'] = '```\n%s```' % current_arg.status()
-		await ctx.send(embed=discord.Embed.from_dict(to_embed))
+		await ctx.send(embed=discord.Embed.from_dict(embed))
+
+	@bot.command()
+	async def adjourn(ctx):
+		await ctx.send('COURT ADJOURNED')
