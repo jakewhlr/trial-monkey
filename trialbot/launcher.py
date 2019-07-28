@@ -8,6 +8,8 @@ import json
 
 from core.bot import TrialBot
 
+BASE_DIR = os.path.join(os.path.dirname( __file__ ), os.pardir)
+
 class Menu:
     def __init__(self):
         self.status = 'offline'
@@ -61,9 +63,10 @@ class Menu:
 
     def start_bot_config(self):
         try:
-            with open('config.json', 'r') as f:
+            print(os.path.join(BASE_DIR, 'docs/config.json'))
+            with open(os.path.join(BASE_DIR, 'docs/config.json'), 'r') as f:
                 config = json.load(f)
-            self.bot = TrialBot(config['token'])
+            self.bot = TrialBot(config['production']['token'])
             loop = asyncio.get_event_loop()
             loop.run_until_complete(self.bot.start())
             loop.close()
