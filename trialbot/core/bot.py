@@ -11,41 +11,10 @@ import random
 from time import sleep
 import logging
 import os
+from core.trial import Trial
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
-
-class argument:
-	left_name = ''
-	right_name = ''
-	name = ''
-	standings = {}
-	left = []
-	right = []
-	fence = []
-	status_message = None
-	def __init__(self, left, right):
-		self.id = str(uuid.uuid4())
-		self.left_name = left.capitalize()
-		self.right_name = right.capitalize()
-		self.name = '%s v. %s' % (left.title(), right.title())
-		self.standings['left'] = []
-		self.standings['fence'] = []
-		self.standings['right'] = []
-		logging.info('Creating new argument (%s): %s v. %s' % (self.id, self.left_name, self.right_name))
-
-	def __str__(self):
-		return self.name
-
-	def status(self):
-		logging.info(self.left)
-		logging.info(self.fence)
-		logging.info(self.right)
-		logging.info(self.standings)
-		embed = {}
-		embed['title'] = '%s v. %s' % (self.left_name, self.right_name)
-		embed['description'] = '```%s```' % tabulate.tabulate(self.standings, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
-		return discord.Embed.from_dict(embed)
 
 class TrialBot:
 	__version__ = '0.0.1'
@@ -106,7 +75,7 @@ class TrialBot:
 
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
-		TrialBot.arguments.append(argument(left_split, right_split))
+		TrialBot.arguments.append(Trial(left_split, right_split))
 		current_arg = TrialBot.arguments[-1]
 		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
 		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
