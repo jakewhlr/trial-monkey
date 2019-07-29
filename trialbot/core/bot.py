@@ -93,11 +93,17 @@ class TrialBot:
 			logging.error(e)
 			return
 
-	@bot.command(help="Creates new trial", usage="(<plaintiff> <defendant>)")
-	async def new(ctx, left, right):
-		print(BASE_DIR)
+	@bot.command(help="Sends mokney gif")
+	async def gif(ctx):
 		gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'gifs.txt'))]
 		monkey_gif = random.choice(gifs)
+		await ctx.send(monkey_gif)
+		sleep(random.randint(3,10))
+
+	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
+	async def new(ctx, left, right):
+		await TrialBot.gif.invoke(ctx)
+
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
 		TrialBot.arguments.append(argument(left_split, right_split))
@@ -105,9 +111,7 @@ class TrialBot:
 		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
 		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
 		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
-		# status_display = '```\n%s\n```' % current_arg.status()
-		await ctx.send(monkey_gif)
-		sleep(random.randint(3,10))
+
 		await ctx.send(left_display)
 		await ctx.send(versus_display)
 		await ctx.send(right_display)
@@ -120,14 +124,17 @@ class TrialBot:
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
-		current_arg = TrialBot.arguments[-1]
-		await current_arg.status_message.delete()
-		current_arg.status_message = await ctx.send(embed = current_arg.status())
-		await current_arg.status_message.add_reaction('👈')
-		sleep(0.5)
-		await current_arg.status_message.add_reaction('🤺')
-		sleep(0.5)
-		await current_arg.status_message.add_reaction('👉')
+		try:
+			current_arg = TrialBot.arguments[-1]
+			await current_arg.status_message.delete()
+			current_arg.status_message = await ctx.send(embed = current_arg.status())
+			await current_arg.status_message.add_reaction('👈')
+			sleep(0.5)
+			await current_arg.status_message.add_reaction('🤺')
+			sleep(0.5)
+			await current_arg.status_message.add_reaction('👉')
+		except:
+			await ctx.send("No trials available!")
 
 	@bot.command()
 	async def adjourn(ctx):
