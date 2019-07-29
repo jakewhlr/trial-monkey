@@ -17,12 +17,14 @@ parser.add_argument('-e', '--env', type=str, help='environment', choices=['produ
 args = parser.parse_args()
 
 def main():
+        os.system('clear')
         config = json.load(args.config)
         token = config[args.env]['token']
         print(token)
         bot = TrialBot(token)
         loop = asyncio.get_event_loop()
         loop.run_until_complete(bot.start())
+        # loop.run_until_complete(bot.stop())
         loop.close()
 
 if __name__ == '__main__':
