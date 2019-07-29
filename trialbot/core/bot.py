@@ -57,17 +57,20 @@ class TrialBot:
 
 	def __init__(self, token):
 		self.token = token
-		try:
-			logging.info('Starting bot...')
-		except:
-			pass
 
 	async def start(self):
-		logging.info("Starting TrialBot.")
-		await self.bot.start(self.token)
+		await self.bot.login(self.token, bot=True)
+		await self.bot.connect()
 
-	def stop(self):
-		self.bot.close()
+	async def stop(self):
+		logging.info("logging out")
+		await self.bot.close()
+
+	@bot.event
+	async def on_ready():
+		logging.info("Connected as %s" % TrialBot.bot.user)
+		TrialBot.bot.command_prefix = "<@%s> !" % TrialBot.bot.user.id
+		logging.info("Set command prefix to: %s" % TrialBot.bot.command_prefix)
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
@@ -90,8 +93,8 @@ class TrialBot:
 			logging.error(e)
 			return
 
-	@bot.command()
-	async def new_trial(ctx, left, right):
+	@bot.command(help="Creates new trial", usage="(<plaintiff> <defendant>)")
+	async def new(ctx, left, right):
 		print(BASE_DIR)
 		gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'gifs.txt'))]
 		monkey_gif = random.choice(gifs)
@@ -115,7 +118,7 @@ class TrialBot:
 		sleep(0.5)
 		await current_arg.status_message.add_reaction('👉')
 
-	@bot.command()
+	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
 		current_arg = TrialBot.arguments[-1]
 		await current_arg.status_message.delete()
@@ -125,14 +128,6 @@ class TrialBot:
 		await current_arg.status_message.add_reaction('🤺')
 		sleep(0.5)
 		await current_arg.status_message.add_reaction('👉')
-
-	@bot.command()
-	async def embed(ctx):
-		current_arg = TrialBot.arguments[-1]
-		embed = {}
-		embed['title'] = '%s v. %s' % (current_arg.left_name, current_arg.right_name)
-		embed['description'] = '```\n%s```' % current_arg.status()
-		await ctx.send(embed=discord.Embed.from_dict(embed))
 
 	@bot.command()
 	async def adjourn(ctx):
