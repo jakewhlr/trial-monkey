@@ -108,3 +108,7 @@ class TrialBot:
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
+
+	@bot.command()
+	async def boomer(ctx):
+		await ctx.send('https://imgur.com/0RGV10v')
