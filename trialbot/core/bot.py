@@ -77,13 +77,13 @@ class TrialBot:
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
 		TrialBot.arguments.append(Trial(left_split, right_split))
 		current_arg = TrialBot.arguments[-1]
-		left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
-		versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
-		right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
+		# left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
+		# versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
+		# right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
 
-		await ctx.send(left_display)
-		await ctx.send(versus_display)
-		await ctx.send(right_display)
+		# await ctx.send(left_display)
+		# await ctx.send(versus_display)
+		# await ctx.send(right_display)
 		current_arg.status_message = await ctx.send(embed = current_arg.status())
 		await current_arg.status_message.add_reaction('👈')
 		sleep(0.5)
@@ -108,3 +108,15 @@ class TrialBot:
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
+
+	@bot.command()
+	async def boomer(ctx):
+		await ctx.send('https://imgur.com/0RGV10v')
+
+	@bot.command()
+	async def test(ctx):
+		to_embed = discord.Embed(title="Good v. Evil", description="Test description")
+		to_embed.add_field(name="Good", value="Killer Whale, America, Jedi")
+		to_embed.add_field(name="The Fence", value="123")
+		to_embed.add_field(name="Evil", value="Ronald McDonald\nAl Qaeda\nMole People")
+		await ctx.send(embed = to_embed)
