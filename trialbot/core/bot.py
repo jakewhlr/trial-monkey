@@ -108,6 +108,18 @@ class TrialBot:
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
+		current_arg	= TrialBot.arguments[-1]
+		left_total = len(current_arg.standings['left'])
+		right_total = len(current_arg.standings['right'])
+		if left_total == right_total:
+			await ctx.send("It's a tie!")
+			await ctx.send("You both suck")
+		elif left_total > right_total:
+			await ctx.send("%s wins with %d votes!" % (current_arg.left_name, left_total))
+			await ctx.send("Suck it %s" % current_arg.right_name)
+		elif right_total > left_total:
+			await ctx.send("%s wins with %d votes!" % (current_arg.right_name, right_total))
+			await ctx.send("Suck it %s" % current_arg.left_name)
 
 	@bot.command()
 	async def boomer(ctx):
