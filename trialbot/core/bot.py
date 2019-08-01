@@ -112,11 +112,3 @@ class TrialBot:
 	@bot.command()
 	async def boomer(ctx):
 		await ctx.send('https://imgur.com/0RGV10v')
-
-	@bot.command()
-	async def test(ctx):
-		to_embed = discord.Embed(title="Good v. Evil", description="Test description")
-		to_embed.add_field(name="Good", value="Killer Whale, America, Jedi")
-		to_embed.add_field(name="The Fence", value="123")
-		to_embed.add_field(name="Evil", value="Ronald McDonald\nAl Qaeda\nMole People")
-		await ctx.send(embed = to_embed)
