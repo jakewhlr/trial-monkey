@@ -9,3 +9,5 @@ pip-delete-this-directory.txt
 
 # Secret config
 config.json
+
+.DS_Store
