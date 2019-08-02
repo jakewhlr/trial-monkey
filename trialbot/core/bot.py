@@ -20,7 +20,7 @@ class TrialBot:
 	__version__ = '0.0.1'
 
 	client = discord.Client()
-	bot = commands.Bot(command_prefix='!')
+	bot = commands.Bot(command_prefix='!', case_insensitive=True)
 	arguments = []
 	token = None
 
@@ -38,7 +38,7 @@ class TrialBot:
 	@bot.event
 	async def on_ready():
 		logging.info("Connected as %s" % TrialBot.bot.user)
-		TrialBot.bot.command_prefix = "<@%s> !" % TrialBot.bot.user.id
+		TrialBot.bot.command_prefix = "<@%s> " % TrialBot.bot.user.id
 		logging.info("Set command prefix to: %s" % TrialBot.bot.command_prefix)
 
 	@bot.event
@@ -67,12 +67,11 @@ class TrialBot:
 		gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'gifs.txt'))]
 		monkey_gif = random.choice(gifs)
 		await ctx.send(monkey_gif)
-		sleep(random.randint(3,10))
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
 	async def new(ctx, left, right):
-		await TrialBot.gif.invoke(ctx)
-
+		gif = await TrialBot.gif.invoke(ctx)
+		sleep(random.randint(3,10))
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
 		TrialBot.arguments.append(Trial(left_split, right_split))
