@@ -23,6 +23,21 @@ class Trial:
 	def __str__(self):
 		return self.name
 
+	def vote(self, team, username):
+		if team not in self.standings:
+			return 1
+		elif username in self.standings[team]:
+			return 0
+		else:
+			if username in self.standings['left']:
+				self.standings['left'].remove(username)
+			if username in self.standings['fence']:
+				self.standings['fence'].remove(username)
+			if username in self.standings['right']:
+				self.standings['right'].remove(username)
+			self.standings[team].append(username)
+			return 0
+
 	def status(self):
 		logging.info(self.standings)
 		embed = discord.Embed()

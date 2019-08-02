@@ -9,6 +9,16 @@ class TestTrial(object):
 		assert test_trial.right_name == "Evil"
 		assert test_trial.name == "Good v. Evil"
 
+	def test_vote(self):
+		test_trial = Trial("good", "evil")
+		test_trial.vote("left", "Luke")
+		assert test_trial.standings == {"left": ["Luke"], "fence": [], "right": []}
+		test_trial.vote("right", "Vader")
+		assert test_trial.standings == {"left": ["Luke"], "fence": [], "right": ["Vader"]}
+		test_trial.vote("left", "Vader")
+		assert test_trial.standings == {"left": ["Luke", "Vader"], "fence": [], "right": []}
+
+
 	def test_status(self):
 		# TODO
 		assert True
