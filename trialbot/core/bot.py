@@ -16,13 +16,17 @@ from core.trial import Trial
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
 
+EMOJI = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣']
+
 class TrialBot:
 	__version__ = '0.0.1'
 
 	client = discord.Client()
 	bot = commands.Bot(command_prefix='!', case_insensitive=True)
-	arguments = []
+	current_arg = None
 	token = None
+	assigned_emoji = {}
+	assigned_emoji_inv = {}
 
 	def __init__(self, token):
 		self.token = token
@@ -35,6 +39,20 @@ class TrialBot:
 		logging.info("logging out")
 		await self.bot.close()
 
+	def gen_status_embed(self, trial):
+		status_dict = trial.status()
+		status_embed = discord.Embed()
+		status_embed.title = status_dict['title']
+		status_embed.description = status_dict['description']
+		for item in status_dict['votes'].keys():
+			name = self.assigned_emoji_inv[item] + " " + item.title()
+			if status_dict['votes'][item]:
+				value = '\n'.join(status_dict['votes'][item])
+			else:
+				value = '‌‌ '
+			status_embed.add_field(name=name, value=value)
+		return status_embed
+
 	@bot.event
 	async def on_ready():
 		logging.info("Connected as %s" % TrialBot.bot.user)
@@ -43,24 +61,19 @@ class TrialBot:
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
-		current_arg = TrialBot.arguments[-1]
 		try:
-			if current_arg.status_message.id == reaction.message.id:
+			if TrialBot.current_arg.status_message.id == reaction.message.id:
 				if user.id != reaction.message.author.id:
-					for key in current_arg.standings:
-						if user.name in current_arg.standings[key]:
-							current_arg.standings[key].remove(user.name)
-					if str(reaction) == '👈':
-						current_arg.standings['left'].append(user.name)
-					elif str(reaction) == '🤺':
-						current_arg.standings['fence'].append(user.name)
-					elif str(reaction) == '👉':
-						current_arg.standings['right'].append(user.name)
+					try:
+						TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
+					except Exception as e:
+						logging.error(e)
 					await reaction.remove(user)
-					await current_arg.status_message.edit(embed=current_arg.status())
+					await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+			return 0
 		except Exception as e:
 			logging.error(e)
-			return
+			return 1
 
 	@bot.command(help="Sends mokney gif")
 	async def gif(ctx):
@@ -69,56 +82,45 @@ class TrialBot:
 		await ctx.send(monkey_gif)
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
-	async def new(ctx, left, right):
-		gif = await TrialBot.gif.invoke(ctx)
-		sleep(random.randint(3,10))
-		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
-		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
-		TrialBot.arguments.append(Trial(left_split, right_split))
-		current_arg = TrialBot.arguments[-1]
-		# left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
-		# versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
-		# right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
-
-		# await ctx.send(left_display)
-		# await ctx.send(versus_display)
-		# await ctx.send(right_display)
-		current_arg.status_message = await ctx.send(embed = current_arg.status())
-		await current_arg.status_message.add_reaction('👈')
-		sleep(0.5)
-		await current_arg.status_message.add_reaction('🤺')
-		sleep(0.5)
-		await current_arg.status_message.add_reaction('👉')
+	async def new(ctx, *, arg):
+		logging.info(arg)
+		split_options = re.split(' v | v. | vs | vs. | versus ', arg)
+		if len(split_options) < 2:
+			await ctx.send("2 or more options required.")
+		else:
+			await TrialBot.gif.invoke(ctx)
+			sleep(random.randint(3,10))
+			TrialBot.current_arg = Trial(split_options)
+			TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
+			TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
+			await TrialBot.status.invoke(ctx)
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
 		try:
-			current_arg = TrialBot.arguments[-1]
-			await current_arg.status_message.delete()
-			current_arg.status_message = await ctx.send(embed = current_arg.status())
-			await current_arg.status_message.add_reaction('👈')
-			sleep(0.5)
-			await current_arg.status_message.add_reaction('🤺')
-			sleep(0.5)
-			await current_arg.status_message.add_reaction('👉')
-		except:
-			await ctx.send("No trials available!")
+			if TrialBot.current_arg.status_message:
+				await TrialBot.current_arg.status_message.delete()
+			TrialBot.current_arg.status_message = await ctx.send(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+			for emoji in TrialBot.assigned_emoji:
+				await TrialBot.current_arg.status_message.add_reaction(emoji)
+				sleep(0.5)
+		except Exception as e:
+			logging.error(e)
 
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
-		current_arg	= TrialBot.arguments[-1]
-		left_total = len(current_arg.standings['left'])
-		right_total = len(current_arg.standings['right'])
+		left_total = len(TrialBot.current_arg.standings['left'])
+		right_total = len(TrialBot.current_arg.standings['right'])
 		if left_total == right_total:
 			await ctx.send("It's a tie!")
 			await ctx.send("You both suck")
 		elif left_total > right_total:
-			await ctx.send("%s wins with %d votes!" % (current_arg.left_name, left_total))
-			await ctx.send("Suck it %s" % current_arg.right_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.left_name, left_total))
+			await ctx.send("Suck it %s" % TrialBot.current_arg.right_name)
 		elif right_total > left_total:
-			await ctx.send("%s wins with %d votes!" % (current_arg.right_name, right_total))
-			await ctx.send("Suck it %s" % current_arg.left_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.right_name, right_total))
+			await ctx.send("Suck it %s" % TrialBot.current_arg.left_name)
 
 	@bot.command()
 	async def boomer(ctx):
