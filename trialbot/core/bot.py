@@ -21,7 +21,7 @@ class TrialBot:
 
 	client = discord.Client()
 	bot = commands.Bot(command_prefix='!', case_insensitive=True)
-	arguments = []
+	current_arg = None
 	token = None
 
 	def __init__(self, token):
@@ -43,21 +43,20 @@ class TrialBot:
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
-		current_arg = TrialBot.arguments[-1]
 		try:
-			if current_arg.status_message.id == reaction.message.id:
+			if TrialBot.current_arg.status_message.id == reaction.message.id:
 				if user.id != reaction.message.author.id:
-					for key in current_arg.standings:
-						if user.name in current_arg.standings[key]:
-							current_arg.standings[key].remove(user.name)
+					for key in TrialBot.current_arg.standings:
+						if user.name in TrialBot.current_arg.standings[key]:
+							TrialBot.current_arg.standings[key].remove(user.name)
 					if str(reaction) == '👈':
-						current_arg.standings['left'].append(user.name)
+						TrialBot.current_arg.standings['left'].append(user.name)
 					elif str(reaction) == '🤺':
-						current_arg.standings['fence'].append(user.name)
+						TrialBot.current_arg.standings['fence'].append(user.name)
 					elif str(reaction) == '👉':
-						current_arg.standings['right'].append(user.name)
+						TrialBot.current_arg.standings['right'].append(user.name)
 					await reaction.remove(user)
-					await current_arg.status_message.edit(embed=current_arg.status())
+					await TrialBot.current_arg.status_message.edit(embed=TrialBot.current_arg.status())
 		except Exception as e:
 			logging.error(e)
 			return
@@ -74,8 +73,7 @@ class TrialBot:
 		sleep(random.randint(3,10))
 		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
 		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
-		TrialBot.arguments.append(Trial(left_split, right_split))
-		current_arg = TrialBot.arguments[-1]
+		TrialBot.current_arg = Trial(left_split, right_split)
 		# left_display = '```\n%s\n```' % figlet_format(current_arg.left_name, font='starwars')
 		# versus_display = '```\n%s\n```' % figlet_format('versus', font='slant')
 		# right_display = '```\n%s\n```' % figlet_format(current_arg.right_name, font='starwars')
@@ -83,42 +81,40 @@ class TrialBot:
 		# await ctx.send(left_display)
 		# await ctx.send(versus_display)
 		# await ctx.send(right_display)
-		current_arg.status_message = await ctx.send(embed = current_arg.status())
-		await current_arg.status_message.add_reaction('👈')
+		TrialBot.current_arg.status_message = await ctx.send(embed = TrialBot.current_arg.status())
+		await TrialBot.current_arg.status_message.add_reaction('👈')
 		sleep(0.5)
-		await current_arg.status_message.add_reaction('🤺')
+		await TrialBot.current_arg.status_message.add_reaction('🤺')
 		sleep(0.5)
-		await current_arg.status_message.add_reaction('👉')
+		await TrialBot.current_arg.status_message.add_reaction('👉')
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
 		try:
-			current_arg = TrialBot.arguments[-1]
-			await current_arg.status_message.delete()
-			current_arg.status_message = await ctx.send(embed = current_arg.status())
-			await current_arg.status_message.add_reaction('👈')
+			await TrialBot.current_arg.status_message.delete()
+			TrialBot.current_arg.status_message = await ctx.send(embed = TrialBot.current_arg.status())
+			await TrialBot.current_arg.status_message.add_reaction('👈')
 			sleep(0.5)
-			await current_arg.status_message.add_reaction('🤺')
+			await TrialBot.current_arg.status_message.add_reaction('🤺')
 			sleep(0.5)
-			await current_arg.status_message.add_reaction('👉')
+			await TrialBot.current_arg.status_message.add_reaction('👉')
 		except:
 			await ctx.send("No trials available!")
 
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
-		current_arg	= TrialBot.arguments[-1]
-		left_total = len(current_arg.standings['left'])
-		right_total = len(current_arg.standings['right'])
+		left_total = len(TrialBot.current_arg.standings['left'])
+		right_total = len(TrialBot.current_arg.standings['right'])
 		if left_total == right_total:
 			await ctx.send("It's a tie!")
 			await ctx.send("You both suck")
 		elif left_total > right_total:
-			await ctx.send("%s wins with %d votes!" % (current_arg.left_name, left_total))
-			await ctx.send("Suck it %s" % current_arg.right_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.left_name, left_total))
+			await ctx.send("Suck it %s" % TrialBot.current_arg.right_name)
 		elif right_total > left_total:
-			await ctx.send("%s wins with %d votes!" % (current_arg.right_name, right_total))
-			await ctx.send("Suck it %s" % current_arg.left_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.right_name, right_total))
+			await ctx.send("Suck it %s" % TrialBot.current_arg.left_name)
 
 	@bot.command()
 	async def boomer(ctx):
