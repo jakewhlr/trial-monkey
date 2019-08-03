@@ -16,7 +16,7 @@ from core.trial import Trial
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
 
-EMOJI = ['1⃣', '2⃣', '3⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
+EMOJI = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣']
 
 class TrialBot:
 	__version__ = '0.0.1'
@@ -72,8 +72,8 @@ class TrialBot:
 					await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
 			return 0
 		except Exception as e:
-		logging.error(e)
-		return 1
+			logging.error(e)
+			return 1
 
 	@bot.command(help="Sends mokney gif")
 	async def gif(ctx):
@@ -82,15 +82,18 @@ class TrialBot:
 		await ctx.send(monkey_gif)
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
-	async def new(ctx, left, right):
-		left_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', left)
-		right_split = re.sub('(?!^)([A-Z][a-z]+)', r' \1', right)
-		TrialBot.current_arg = Trial(left_split, right_split)
-		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
-		TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
-		await TrialBot.gif.invoke(ctx)
-		sleep(random.randint(3,10))
-		await TrialBot.status.invoke(ctx)
+	async def new(ctx, *, arg):
+		logging.info(arg)
+		split_options = re.split(' v | v. | vs | vs. | versus ', arg)
+		if len(split_options) < 2:
+			await ctx.send("2 or more options required.")
+		else:
+			await TrialBot.gif.invoke(ctx)
+			sleep(random.randint(3,10))
+			TrialBot.current_arg = Trial(split_options)
+			TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
+			TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
+			await TrialBot.status.invoke(ctx)
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
