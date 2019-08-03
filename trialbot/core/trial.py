@@ -53,27 +53,6 @@ class Trial:
 		output['description'] = self.description
 		output['votes'] = self.votes
 		return output
-		# logging.info(self.standings)
-		# embed = discord.Embed()
-		# embed.title = '%s v. %s' % (self.left_name, self.right_name)
-		# # embed.description = '```%s```' % tabulate.tabulate(self.standings, headers = [self.left_name, 'The Fence', self.right_name], tablefmt='grid')
-		# print('\n'.join(self.standings['left']))
-		# if self.standings['left']:
-		# 	value = '\n'.join(self.standings['left'])
-		# else:
-		# 	value = '‌‌ '
-		# embed.add_field(name="__" + self.left_name + "__", value=value)
-		# if self.standings['fence']:
-		# 	value = '\n'.join(self.standings['fence'])
-		# else:
-		# 	value = '‌‌ '
-		# embed.add_field(name="__The Fence__", value=value)
-		# if self.standings['right']:
-		# 	value = '\n'.join(self.standings['right'])
-		# else:
-		# 	value = '‌‌ '
-		# embed.add_field(name="__" + self.right_name + "__", value=value)
-		# return embed
 
 	def toJSON(self):
 		output = {
