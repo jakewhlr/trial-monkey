@@ -11,19 +11,11 @@ class Trial:
 	standings = {}
 	votes = {}
 	status_message = None
-	def __init__(self, left, right):
-		self.id = 0
-		self.left_name = left.capitalize()
-		self.right_name = right.capitalize()
-		self.name = '%s v. %s' % (left.title(), right.title())
-		self.description = ""
-		self.votes[self.left_name.lower()] = []
+	def __init__(self, options):
 		self.votes['fence'] = []
-		self.votes[self.right_name.lower()] = []
-		self.standings['left'] = []
-		self.standings['fence'] = []
-		self.standings['right'] = []
-		logging.info('Creating new argument (%s): %s v. %s' % (self.id, self.left_name, self.right_name))
+		for item in options:
+			self.votes[item.lower()] = []
+		self.description = ""
 
 	def __str__(self):
 		return self.name
@@ -46,20 +38,10 @@ class Trial:
 		title = ""
 		for item in self.votes.keys():
 			if item != "fence":
-				title = title + "%s v. " % item.title()
-		if title.endswith(" v. "):
-			title = title[:-4]
+				title = title + "%s vs. " % item.title()
+		if title.endswith(" vs. "):
+			title = title[:-5]
 		output['title'] = title
 		output['description'] = self.description
 		output['votes'] = self.votes
 		return output
-
-	def toJSON(self):
-		output = {
-			"name": self.name,
-			"id": self.id,
-			"left_name": self.left_name,
-			"right_name": self.right_name,
-			"standings": self.standings
-		}
-		return json.dumps(output)
