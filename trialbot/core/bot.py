@@ -11,6 +11,7 @@ import random
 from time import sleep
 import logging
 import os
+import sqlite3
 from core.trial import Trial
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
@@ -30,14 +31,13 @@ class TrialBot:
 
 	def __init__(self, token):
 		self.token = token
+		self.sqlite_conn = self.create_db_connection(os.path.join(BASE_DIR, 'db.sqlite3'))
+		self.initialize_db(self.sqlite_conn)
+		self.sqlite_conn.close()
 
 	async def start(self):
 		await self.bot.login(self.token, bot=True)
 		await self.bot.connect()
-
-	async def stop(self):
-		logging.info("logging out")
-		await self.bot.close()
 
 	def gen_status_embed(self, trial):
 		status_dict = trial.status()
@@ -52,6 +52,84 @@ class TrialBot:
 				value = '‌‌ '
 			status_embed.add_field(name=name, value=value)
 		return status_embed
+
+	def create_db_connection(self, db_file):
+		try:
+			conn = sqlite3.connect(db_file)
+			return conn
+		except Exception as e:
+			logging.error(e)
+		return None
+
+	def initialize_db(self, conn):
+		try:
+			cursor = conn.cursor()
+			logging.info("Executing SQL create trials")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS trials(
+						title text PRIMARY KEY,
+						description text
+					);
+				"""
+			)
+			logging.info("Executing SQL create teams")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS teams(
+						team_name text PRIMARY KEY,
+						trial_title integer,
+						FOREIGN KEY (trial_title) REFERENCES trials (title)
+					);
+				"""
+			)
+			logging.info("Executing SQL create trials")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS votes(
+						user_name text PRIMARY KEY,
+						team_name integer,
+						trial_title text,
+						FOREIGN KEY (team_name) REFERENCES teams(team_name),
+						FOREIGH KEY (trial_title) REFERENCES trials(title)
+					);
+				"""
+			)
+		except Exception as e:
+			logging.error(e)
+		return
+
+	def save_to_db(self, conn):
+		'''
+			Saves current trial to sqlite database
+		'''
+		cursor = conn.cursor()
+		status_dict = self.current_arg.status()
+		cursor.execute(
+			"""
+				INSERT OR REPLACE INTO trials(title, description)
+				VALUES (?, ?)
+			""", (status_dict['title'], status_dict['description'])
+		)
+		for team in status_dict['votes'].keys():
+			print(team)
+			cursor.execute(
+				"""
+					INSERT OR REPLACE INTO teams(team_name)
+					VALUES (?)
+				""", (team,)
+			)
+			execute_list = []
+			for item in status_dict['votes'][team]:
+				execute_list.append([item, team, status_dict['title']])
+			logging.info("EXECUTE LIST" + str(execute_list))
+			cursor.executemany(
+				"""
+					INSERT OR REPLACE INTO votes(user_name, team_name, trial_name)
+					VALUES (?, ?, ?)
+				""", execute_list
+			)
+		conn.commit()
 
 	@bot.event
 	async def on_ready():
@@ -125,3 +203,10 @@ class TrialBot:
 	@bot.command()
 	async def boomer(ctx):
 		await ctx.send('https://imgur.com/0RGV10v')
+
+	@bot.command()
+	async def save(ctx):
+		conn = TrialBot.create_db_connection(TrialBot, os.path.join(BASE_DIR, 'db.sqlite3'))
+		TrialBot.save_to_db(TrialBot, conn)
+		conn.close()
+
