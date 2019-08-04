@@ -9,5 +9,6 @@ pip-delete-this-directory.txt
 
 # Secret config
 config.json
+*.sqlite3
 
 .DS_Store
