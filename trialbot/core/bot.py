@@ -12,7 +12,7 @@ from time import sleep
 import logging
 import os
 import sqlite3
-from core.trial import Trial
+from trialbot.core.trial import Trial
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
@@ -52,6 +52,13 @@ class TrialBot:
 				value = '‌‌ '
 			status_embed.add_field(name=name, value=value)
 		return status_embed
+
+	def set_command_prefix(self, new_command_prefix):
+		try:
+			self.bot.command_prefix = new_command_prefix
+			return 0
+		except Exception as e:
+			logging.error(e)
 
 	def create_db_connection(self, db_file):
 		try:
@@ -133,9 +140,7 @@ class TrialBot:
 
 	@bot.event
 	async def on_ready():
-		logging.info("Connected as %s" % TrialBot.bot.user)
-		TrialBot.bot.command_prefix = "<@%s> " % TrialBot.bot.user.id
-		logging.info("Set command prefix to: %s" % TrialBot.bot.command_prefix)
+		TrialBot.set_command_prefix("<@%s> " % TrialBot.bot.user.id)
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
