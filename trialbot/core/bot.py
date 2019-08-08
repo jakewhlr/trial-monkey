@@ -60,6 +60,21 @@ class TrialBot:
 		except Exception as e:
 			logging.error(e)
 
+	def check_valid_reaction(self, bot_user_id, status_message_id, message_id, user_id, emoji):
+		if message_id is not status_message_id:
+			logging.info("Failed at message id")
+			return False
+		elif user_id is bot_user_id:
+			logging.info("Failed at user id")
+			return False
+		elif emoji not in self.assigned_emoji.keys():
+			logging.info("Failed at emoji")
+			logging.info("%s not in " % emoji)
+			logging.info(str(self.assigned_emoji.keys()))
+			return False
+		else:
+			return True
+
 	def create_db_connection(self, db_file):
 		try:
 			conn = sqlite3.connect(db_file)
