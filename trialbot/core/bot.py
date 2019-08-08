@@ -159,18 +159,23 @@ class TrialBot:
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
-		try:
-			if TrialBot.current_arg.status_message.id == reaction.message.id:
-				if user.id != reaction.message.author.id:
-					try:
-						TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
-					except Exception as e:
-						logging.error(e)
-					await reaction.remove(user)
-					await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
-			return 0
-		except Exception as e:
-			logging.error(e)
+		is_valid_reaction = check_valid_reaction(
+			bot_user_id = user.id,
+			status_message_id = TrialBot.current_arg.status_message.id,
+			message_id = reaction.message_id,
+			user_id = reaction.message.author.id,
+			emoji = str(reaction)
+		)
+		if is_valid_reaction:
+			try:
+				TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
+				await reaction.remove(user)
+				await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+				return 0
+			except Exception as e:
+				logging.error(e)
+				return 1
+		else:
 			return 1
 
 	@bot.command(help="Sends mokney gif")
