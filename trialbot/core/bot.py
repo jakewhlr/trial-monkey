@@ -11,7 +11,8 @@ import random
 from time import sleep
 import logging
 import os
-from core.trial import Trial
+import sqlite3
+from .trial import Trial
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
@@ -30,14 +31,13 @@ class TrialBot:
 
 	def __init__(self, token):
 		self.token = token
+		self.sqlite_conn = self.create_db_connection(os.path.join(BASE_DIR, 'db.sqlite3'))
+		self.initialize_db(self.sqlite_conn)
+		self.sqlite_conn.close()
 
 	async def start(self):
 		await self.bot.login(self.token, bot=True)
 		await self.bot.connect()
-
-	async def stop(self):
-		logging.info("logging out")
-		await self.bot.close()
 
 	def gen_status_embed(self, trial):
 		status_dict = trial.status()
@@ -53,26 +53,130 @@ class TrialBot:
 			status_embed.add_field(name=name, value=value)
 		return status_embed
 
-	@bot.event
-	async def on_ready():
-		logging.info("Connected as %s" % TrialBot.bot.user)
-		TrialBot.bot.command_prefix = "<@%s> " % TrialBot.bot.user.id
-		logging.info("Set command prefix to: %s" % TrialBot.bot.command_prefix)
-
-	@bot.event
-	async def on_reaction_add(reaction, user):
+	def set_command_prefix(self, new_command_prefix):
 		try:
-			if TrialBot.current_arg.status_message.id == reaction.message.id:
-				if user.id != reaction.message.author.id:
-					try:
-						TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
-					except Exception as e:
-						logging.error(e)
-					await reaction.remove(user)
-					await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+			self.bot.command_prefix = new_command_prefix
 			return 0
 		except Exception as e:
 			logging.error(e)
+
+	def check_valid_reaction(self, bot_user_id, status_message_id, message_id, user_id, emoji):
+		if message_id != status_message_id:
+			logging.info("Failed at message id")
+			logging.info(message_id)
+			logging.info(status_message_id)
+			return False
+		elif user_id == bot_user_id:
+			logging.info("Failed at user id")
+			return False
+		elif emoji not in self.assigned_emoji.keys():
+			logging.info("Failed at emoji")
+			logging.info(str(self.assigned_emoji.keys()))
+			return False
+		else:
+			return True
+
+	def create_db_connection(self, db_file):
+		try:
+			conn = sqlite3.connect(db_file)
+			return conn
+		except Exception as e:
+			logging.error(e)
+		return None
+
+	def initialize_db(self, conn):
+		try:
+			cursor = conn.cursor()
+			logging.info("Executing SQL create trials")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS trials(
+						title text PRIMARY KEY,
+						description text
+					);
+				"""
+			)
+			logging.info("Executing SQL create teams")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS teams(
+						team_name text PRIMARY KEY,
+						trial_title integer,
+						FOREIGN KEY (trial_title) REFERENCES trials (title)
+					);
+				"""
+			)
+			logging.info("Executing SQL create trials")
+			cursor.execute(
+				"""
+					CREATE TABLE IF NOT EXISTS votes(
+						user_name text PRIMARY KEY,
+						team_name integer,
+						trial_title text,
+						FOREIGN KEY (team_name) REFERENCES teams(team_name),
+						FOREIGH KEY (trial_title) REFERENCES trials(title)
+					);
+				"""
+			)
+		except Exception as e:
+			logging.error(e)
+		return
+
+	def save_to_db(self, conn):
+		'''
+			Saves current trial to sqlite database
+		'''
+		cursor = conn.cursor()
+		status_dict = self.current_arg.status()
+		cursor.execute(
+			"""
+				INSERT OR REPLACE INTO trials(title, description)
+				VALUES (?, ?)
+			""", (status_dict['title'], status_dict['description'])
+		)
+		for team in status_dict['votes'].keys():
+			print(team)
+			cursor.execute(
+				"""
+					INSERT OR REPLACE INTO teams(team_name)
+					VALUES (?)
+				""", (team,)
+			)
+			execute_list = []
+			for item in status_dict['votes'][team]:
+				execute_list.append([item, team, status_dict['title']])
+			logging.info("EXECUTE LIST" + str(execute_list))
+			cursor.executemany(
+				"""
+					INSERT OR REPLACE INTO votes(user_name, team_name, trial_name)
+					VALUES (?, ?, ?)
+				""", execute_list
+			)
+		conn.commit()
+
+	@bot.event
+	async def on_ready():
+		TrialBot.set_command_prefix(TrialBot, "<@%s> " % TrialBot.bot.user.id)
+
+	@bot.event
+	async def on_reaction_add(reaction, user):
+		is_valid_reaction = TrialBot.check_valid_reaction(TrialBot,
+			bot_user_id = user.id,
+			status_message_id = TrialBot.current_arg.status_message.id,
+			message_id = reaction.message.id,
+			user_id = reaction.message.author.id,
+			emoji = str(reaction)
+		)
+		if is_valid_reaction:
+			try:
+				TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
+				await reaction.remove(user)
+				await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+				return 0
+			except Exception as e:
+				logging.error(e)
+				return 1
+		else:
 			return 1
 
 	@bot.command(help="Sends mokney gif")
@@ -125,3 +229,10 @@ class TrialBot:
 	@bot.command()
 	async def boomer(ctx):
 		await ctx.send('https://imgur.com/0RGV10v')
+
+	@bot.command()
+	async def save(ctx):
+		conn = TrialBot.create_db_connection(TrialBot, os.path.join(BASE_DIR, 'db.sqlite3'))
+		TrialBot.save_to_db(TrialBot, conn)
+		conn.close()
+
