@@ -12,7 +12,7 @@ from time import sleep
 import logging
 import os
 import sqlite3
-from trialbot.core.trial import Trial
+from .trial import Trial
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
@@ -61,15 +61,16 @@ class TrialBot:
 			logging.error(e)
 
 	def check_valid_reaction(self, bot_user_id, status_message_id, message_id, user_id, emoji):
-		if message_id is not status_message_id:
+		if message_id != status_message_id:
 			logging.info("Failed at message id")
+			logging.info(message_id)
+			logging.info(status_message_id)
 			return False
-		elif user_id is bot_user_id:
+		elif user_id == bot_user_id:
 			logging.info("Failed at user id")
 			return False
 		elif emoji not in self.assigned_emoji.keys():
 			logging.info("Failed at emoji")
-			logging.info("%s not in " % emoji)
 			logging.info(str(self.assigned_emoji.keys()))
 			return False
 		else:
@@ -155,14 +156,14 @@ class TrialBot:
 
 	@bot.event
 	async def on_ready():
-		TrialBot.set_command_prefix("<@%s> " % TrialBot.bot.user.id)
+		TrialBot.set_command_prefix(TrialBot, "<@%s> " % TrialBot.bot.user.id)
 
 	@bot.event
 	async def on_reaction_add(reaction, user):
-		is_valid_reaction = check_valid_reaction(
+		is_valid_reaction = TrialBot.check_valid_reaction(TrialBot,
 			bot_user_id = user.id,
 			status_message_id = TrialBot.current_arg.status_message.id,
-			message_id = reaction.message_id,
+			message_id = reaction.message.id,
 			user_id = reaction.message.author.id,
 			emoji = str(reaction)
 		)
