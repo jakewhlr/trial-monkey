@@ -54,11 +54,14 @@ class TrialBot:
 		return status_embed
 
 	def set_command_prefix(self, new_command_prefix):
-		try:
-			self.bot.command_prefix = new_command_prefix
-			return 0
-		except Exception as e:
-			logging.error(e)
+		if new_command_prefix:
+			try:
+				self.bot.command_prefix = new_command_prefix
+				return 0
+			except Exception as e:
+				logging.error(e)
+		else:
+			return 1
 
 	def check_valid_reaction(self, bot_user_id, status_message_id, message_id, user_id, emoji):
 		if message_id != status_message_id:
@@ -75,6 +78,13 @@ class TrialBot:
 			return False
 		else:
 			return True
+
+	def split_args(self, args_string):
+		split_options = re.split(' v | v. | vs | vs. | versus ', args_string)
+		if len(split_options) < 2:
+			return None
+		else:
+			return split_options
 
 	def create_db_connection(self, db_file):
 		try:
@@ -187,17 +197,15 @@ class TrialBot:
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
 	async def new(ctx, *, arg):
-		logging.info(arg)
-		split_options = re.split(' v | v. | vs | vs. | versus ', arg)
-		if len(split_options) < 2:
-			await ctx.send("2 or more options required.")
-		else:
-			await TrialBot.gif.invoke(ctx)
-			sleep(random.randint(3,10))
-			TrialBot.current_arg = Trial(split_options)
-			TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
-			TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
-			await TrialBot.status.invoke(ctx)
+		args_list = TrialBot.split_args(arg)
+		if not args_list:
+			return 0
+		await TrialBot.gif.invoke(ctx)
+		sleep(random.randint(3,10))
+		TrialBot.current_arg = Trial(split_options)
+		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
+		TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
+		await TrialBot.status.invoke(ctx)
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
