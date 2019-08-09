@@ -1,15 +1,11 @@
 import pytest
+import re
 from trialbot.core.bot import TrialBot
 
 class TestTrialBot(object):
 	def test_init(self):
 		test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
 		assert test_bot.token == "afj34q9opf8ihaf44f8hasef"
-
-	def test_valid_reaction(self):
-		test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
-
-		del test_bot
 
 	def test_set_command_prefix(self):
 		test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
@@ -63,3 +59,18 @@ class TestTrialBot(object):
 			emoji = '1⃣'
 		)
 		assert response == True
+
+	def test_split_args(self):
+		test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
+
+		output = test_bot.split_args("One v. Two")
+		assert output == ["One", "Two"]
+
+		output = test_bot.split_args("One v. Two v Three")
+		assert output == ["One", "Two", "Three"]
+
+		output = test_bot.split_args("One versus Two vs. three")
+		assert output == ["One", "Two", "three"]
+
+		output = test_bot.split_args("One")
+		assert output == None
