@@ -12,6 +12,7 @@ class Trial:
 	votes = {}
 	status_message = None
 	def __init__(self, options):
+		self.votes = {}
 		self.votes['fence'] = []
 		for item in options:
 			self.votes[item.lower()] = []
