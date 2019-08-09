@@ -197,6 +197,8 @@ class TrialBot:
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
 	async def new(ctx, *, arg):
+		if TrialBot.current_arg:
+			del TrialBot.current_arg
 		args_list = TrialBot.split_args(arg)
 		if not args_list:
 			return 0
