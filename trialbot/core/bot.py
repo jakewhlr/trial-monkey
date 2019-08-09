@@ -197,14 +197,14 @@ class TrialBot:
 
 	@bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
 	async def new(ctx, *, arg):
-		if TrialBot.current_arg:
-			del TrialBot.current_arg
-		args_list = TrialBot.split_args(arg)
+		args_list = TrialBot.split_args(TrialBot, arg)
 		if not args_list:
 			return 0
 		await TrialBot.gif.invoke(ctx)
 		sleep(random.randint(3,10))
-		TrialBot.current_arg = Trial(split_options)
+		if TrialBot.current_arg:
+			TrialBot.current_arg.votes = {}
+		TrialBot.current_arg = Trial(args_list)
 		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
 		TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
 		await TrialBot.status.invoke(ctx)
