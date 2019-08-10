@@ -4,13 +4,13 @@ Trial Monkey is a Discord bot for facilitating arguments.
 
 ## Getting Started
 To run the bot locally, create a python virtual environment to install dependencies.  
-`python -m virtualenv -p python3 /path/to/virtualenv`
+`python -m virtualenv -p python3 /path/to/virtualenv`  
 Activate the virtual environment  
-`source /path/to/virtualenv/bin/activate`
+`source /path/to/virtualenv/bin/activate`  
 Install dependencies  
-`pip install -r requirements.txt`
+`pip install -r requirements.txt`  
 Run application. See usage section below for command line usage.  
-`./main.py -c config.json -e production`
+`./main.py -c config.json -e production`  
 
 ## Config
 A JSON configuration file is required containing a Discord bot token. The config supports several different tokens for different environments, the default selection is "production", so that is required. Example:
