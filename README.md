@@ -3,13 +3,13 @@
 Trial Monkey is a Discord bot for facilitating arguments.
 
 ## Getting Started
-To run the bot locally, create a python virtual environment to install dependencies.
+To run the bot locally, create a python virtual environment to install dependencies.  
 `python -m virtualenv -p python3 /path/to/virtualenv`
-Activate the virtual environment
+Activate the virtual environment  
 `source /path/to/virtualenv/bin/activate`
-Install dependencies
+Install dependencies  
 `pip install -r requirements.txt`
-Run application. See usage section below for command line usage.
+Run application. See usage section below for command line usage.  
 `./main.py -c config.json -e production`
 
 ## Config
@@ -40,8 +40,9 @@ optional arguments:
 ```
 ### Using in Discord
 Command prefix is a mention of the bot user (ex: "@Trial Monkey#5432 gif")
+### Bot Commands
 ```
-​No Category:
+No Category:
   adjourn
   boomer
   gif     Sends mokney gif
