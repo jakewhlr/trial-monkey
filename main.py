@@ -11,28 +11,20 @@ from trialbot.core.bot import TrialBot
 
 BASE_DIR = os.path.join(os.path.dirname( __file__ ))
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--config', help='config json', type=argparse.FileType('r'), required=True)
+parser.add_argument('-e', '--env', type=str, help='environment', choices=['production', 'staging'], required=False, default='production')
 
-# if os.environ["SERVER_NAME"] == "localhost":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('-c', '--config', help='config json', type=argparse.FileType('r'), required=False, default='docs/config.json')
-#     parser.add_argument('-e', '--env', type=str, help='environment', choices=['production', 'staging'], required=False default='staging')
-#     args = parser.parse_args()
-#     CONFIG = args.config
-#     ENV = args.env
-# else:
-CONFIG = open("./docs/config.json", "r")
-ENV = "staging"
+args = parser.parse_args()
 
 def main():
         try:
             os.system('clear')
-            config = json.load(CONFIG)
-            token = config[ENV]['token']
-            print(token)
+            config = json.load(args.config)
+            token = config[args.env]['token']
             bot = TrialBot(token)
             loop = asyncio.get_event_loop()
             loop.run_until_complete(bot.start())
-            # loop.run_until_complete(bot.stop())
             loop.close()
         except KeyboardInterrupt:
             print('Exiting')
