@@ -236,7 +236,7 @@ class TrialBot:
 			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.right_name, right_total))
 			await ctx.send("Suck it %s" % TrialBot.current_arg.left_name)
 
-	@bot.command()
+	@bot.command(aliases= ['oldman','Godimold!','fandangled','fuckingmillenials'])
 	async def boomer(ctx):
 		await ctx.send('https://imgur.com/0RGV10v')
 
@@ -245,4 +245,3 @@ class TrialBot:
 		conn = TrialBot.create_db_connection(TrialBot, os.path.join(BASE_DIR, 'db.sqlite3'))
 		TrialBot.save_to_db(TrialBot, conn)
 		conn.close()
-
