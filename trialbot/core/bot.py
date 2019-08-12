@@ -221,7 +221,7 @@ class TrialBot:
 		except Exception as e:
 			logging.error(e)
 
-	@bot.command()
+	@bot.command(aliases = ['adjourned','end','close'])
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
 		left_total = len(TrialBot.current_arg.standings['left'])
