@@ -24,7 +24,8 @@ class TrialBot:
 
 	client = discord.Client()
 	bot = commands.Bot(command_prefix='!', case_insensitive=True)
-	current_arg = None
+	trials = []
+	current_trial_index = None
 	token = None
 	assigned_emoji = {}
 	assigned_emoji_inv = {}
@@ -137,7 +138,7 @@ class TrialBot:
 			Saves current trial to sqlite database
 		'''
 		cursor = conn.cursor()
-		status_dict = self.current_arg.status()
+		status_dict = self.trials[self.current_trial_index].status()
 		cursor.execute(
 			"""
 				INSERT OR REPLACE INTO trials(title, description)
@@ -172,16 +173,16 @@ class TrialBot:
 	async def on_reaction_add(reaction, user):
 		is_valid_reaction = TrialBot.check_valid_reaction(TrialBot,
 			bot_user_id = user.id,
-			status_message_id = TrialBot.current_arg.status_message.id,
+			status_message_id = TrialBot.trials[TrialBot.current_trial_index].status_message.id,
 			message_id = reaction.message.id,
 			user_id = reaction.message.author.id,
 			emoji = str(reaction)
 		)
 		if is_valid_reaction:
 			try:
-				TrialBot.current_arg.vote(TrialBot.assigned_emoji[str(reaction)], user.name)
+				TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)], user.name)
 				await reaction.remove(user)
-				await TrialBot.current_arg.status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+				await TrialBot.trials[TrialBot.current_trial_index].status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
 				return 0
 			except Exception as e:
 				logging.error(e)
@@ -202,21 +203,22 @@ class TrialBot:
 			return 0
 		await TrialBot.gif.invoke(ctx)
 		sleep(random.randint(3,10))
-		if TrialBot.current_arg:
-			TrialBot.current_arg.votes = {}
-		TrialBot.current_arg = Trial(args_list)
-		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.current_arg.votes.keys()))
+		# if TrialBot.trials[TrialBot.current_trial_index]:
+		# 	TrialBot.trials[TrialBot.current_trial_index].votes = {}
+		TrialBot.trials.append(Trial(args_list))
+		TrialBot.current_trial_index = len(TrialBot.trials) - 1
+		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.trials[TrialBot.current_trial_index].votes.keys()))
 		TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
 		await TrialBot.status.invoke(ctx)
 
 	@bot.command(help="Shows status of given trial (default=current)", usage="[<trial_number>]")
 	async def status(ctx):
 		try:
-			if TrialBot.current_arg.status_message:
-				await TrialBot.current_arg.status_message.delete()
-			TrialBot.current_arg.status_message = await ctx.send(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.current_arg))
+			if TrialBot.trials[TrialBot.current_trial_index].status_message:
+				await TrialBot.trials[TrialBot.current_trial_index].status_message.delete()
+			TrialBot.trials[TrialBot.current_trial_index].status_message = await ctx.send(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
 			for emoji in TrialBot.assigned_emoji:
-				await TrialBot.current_arg.status_message.add_reaction(emoji)
+				await TrialBot.trials[TrialBot.current_trial_index].status_message.add_reaction(emoji)
 				sleep(0.5)
 		except Exception as e:
 			logging.error(e)
@@ -224,17 +226,42 @@ class TrialBot:
 	@bot.command()
 	async def adjourn(ctx):
 		await ctx.send('COURT ADJOURNED')
-		left_total = len(TrialBot.current_arg.standings['left'])
-		right_total = len(TrialBot.current_arg.standings['right'])
+		left_total = len(TrialBot.trials[TrialBot.current_trial_index].standings['left'])
+		right_total = len(TrialBot.trials[TrialBot.current_trial_index].standings['right'])
 		if left_total == right_total:
 			await ctx.send("It's a tie!")
 			await ctx.send("You both suck")
 		elif left_total > right_total:
-			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.left_name, left_total))
-			await ctx.send("Suck it %s" % TrialBot.current_arg.right_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.trials[TrialBot.current_trial_index].left_name, left_total))
+			await ctx.send("Suck it %s" % TrialBot.trials[TrialBot.current_trial_index].right_name)
 		elif right_total > left_total:
-			await ctx.send("%s wins with %d votes!" % (TrialBot.current_arg.right_name, right_total))
-			await ctx.send("Suck it %s" % TrialBot.current_arg.left_name)
+			await ctx.send("%s wins with %d votes!" % (TrialBot.trials[TrialBot.current_trial_index].right_name, right_total))
+			await ctx.send("Suck it %s" % TrialBot.trials[TrialBot.current_trial_index].left_name)
+
+	@bot.command()
+	async def list(ctx):
+		output_list = []
+		for index, item in enumerate(TrialBot.trials):
+			if index is TrialBot.current_trial_index:
+				output_list.append("**%s. %s**" % (str(index), item.title))
+			else:
+				output_list.append("%s. %s" % (str(index), item.title))
+		output_message = '\n'.join(output_list)
+		await ctx.send(">>> __**Available Arguments**__\n" + output_message)
+
+	@bot.command()
+	async def select(ctx, index):
+		try:
+			if int(index) < len(TrialBot.trials):
+				TrialBot.current_trial_index = int(index)
+				TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.trials[TrialBot.current_trial_index].votes.keys()))
+				TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
+				await ctx.send("Selected %s" % TrialBot.trials[TrialBot.current_trial_index].title)
+				return 0
+			else:
+				return 1
+		except Exception as e:
+			logging.error(e)
 
 	@bot.command()
 	async def boomer(ctx):
