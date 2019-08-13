@@ -188,7 +188,7 @@ class TrialBot:
 		)
 		if is_valid_reaction:
 			try:
-				TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)], user.name)
+				TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)], user.display_name)
 				await reaction.remove(user)
 				await TrialBot.trials[TrialBot.current_trial_index].status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
 				return 0
