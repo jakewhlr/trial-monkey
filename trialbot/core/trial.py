@@ -7,7 +7,7 @@ import json
 class Trial:
 	left_name = ''
 	right_name = ''
-	name = ''
+	title = ''
 	standings = {}
 	votes = {}
 	status_message = None
@@ -19,7 +19,7 @@ class Trial:
 		self.description = ""
 
 	def __str__(self):
-		return self.name
+		return self.title
 
 	def vote(self, team, username):
 		team = team.lower()
@@ -36,13 +36,13 @@ class Trial:
 
 	def status(self):
 		output = {}
-		title = ""
+		self.title = ""
 		for item in self.votes.keys():
 			if item != "fence":
-				title = title + "%s vs. " % item.title()
-		if title.endswith(" vs. "):
-			title = title[:-5]
-		output['title'] = title
+				self.title = self.title + "%s vs. " % item.title()
+		if self.title.endswith(" vs. "):
+			self.title = self.title[:-5]
+		output['title'] = self.title
 		output['description'] = self.description
 		output['votes'] = self.votes
 		return output
