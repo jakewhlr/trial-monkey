@@ -17,7 +17,7 @@ from .trial import Trial
 BASE_DIR = os.path.join(os.path.dirname( __file__ ), '..')
 logging.basicConfig(format = '%(levelname)s: %(message)s', level = logging.INFO)
 
-EMOJI = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣']
+EMOJI = ['🤺', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣']
 
 class TrialBot:
 	__version__ = '0.0.1'
@@ -46,12 +46,20 @@ class TrialBot:
 		status_embed.title = status_dict['title']
 		status_embed.description = status_dict['description']
 		for item in status_dict['votes'].keys():
-			name = self.assigned_emoji_inv[item] + " " + item.title()
-			if status_dict['votes'][item]:
-				value = '\n'.join(status_dict['votes'][item])
+			if item == "fence":
+				name = "The Fence " + self.assigned_emoji_inv[item]
+				if status_dict['votes'][item]:
+					value = ', '.join(status_dict['votes'][item])
+				else:
+					value = '‌‌ '
+				status_embed.insert_field_at(index=0, name=name, value=value, inline=False)
 			else:
-				value = '‌‌ '
-			status_embed.add_field(name=name, value=value)
+				name = self.assigned_emoji_inv[item] + " " + item.title()
+				if status_dict['votes'][item]:
+					value = '\n'.join(status_dict['votes'][item])
+				else:
+					value = '‌‌ '
+				status_embed.add_field(name=name, value=value)
 		return status_embed
 
 	def set_command_prefix(self, new_command_prefix):
