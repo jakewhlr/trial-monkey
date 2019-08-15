@@ -213,7 +213,7 @@ class TrialBot:
 		sleep(random.randint(3,10))
 		# if TrialBot.trials[TrialBot.current_trial_index]:
 		# 	TrialBot.trials[TrialBot.current_trial_index].votes = {}
-		TrialBot.trials.append(Trial(args_list))
+		TrialBot.trials.append(Trial(teams=args_list))
 		TrialBot.current_trial_index = len(TrialBot.trials) - 1
 		TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.trials[TrialBot.current_trial_index].votes.keys()))
 		TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}

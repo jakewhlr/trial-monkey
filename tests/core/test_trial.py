@@ -4,7 +4,8 @@ from trialbot.core.trial import Trial
 
 class TestTrial(object):
 	def test_initialize(self):
-		test_trial = Trial(["good", "evil"])
+		test_trial = Trial(teams=["good", "evil"])
+		assert test_trial.title == "Good vs. Evil"
 		assert test_trial.votes == {
 			"good": [],
 			"evil": [],
@@ -12,7 +13,7 @@ class TestTrial(object):
 		}
 
 	def test_vote(self):
-		test_trial = Trial(["good", "evil"])
+		test_trial = Trial(teams=["good", "evil"])
 		test_trial.vote("good", "Luke")
 		assert test_trial.votes == {"good": ["Luke"], "fence": [], "evil": []}
 		test_trial.vote("evil", "Vader")
@@ -22,7 +23,7 @@ class TestTrial(object):
 
 
 	def test_status(self):
-		test_trial = Trial(["good", "evil"])
+		test_trial = Trial(teams=["good", "evil"])
 		expected_output = {
 			"title": "Good vs. Evil",
 			"description": "",
