@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
+"""
+This module is used as a discord bot interface for the Trial class.
+"""
+
+
 import re
-import json
-import asyncio
 import random
 from time import sleep
 import logging
