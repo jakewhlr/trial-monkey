@@ -8,7 +8,6 @@ import random
 from time import sleep
 import logging
 import os
-import sqlite3
 
 import discord
 from discord.ext import commands
@@ -37,11 +36,6 @@ class TrialBot:
 
     def __init__(self, token):
         self.token = token
-        self.sqlite_conn = self.create_db_connection(
-            os.path.join(BASE_DIR, 'db.sqlite3')
-        )
-        self.initialize_db(self.sqlite_conn)
-        self.sqlite_conn.close()
 
     async def start(self):
         """
@@ -145,105 +139,6 @@ class TrialBot:
         if len(split_options) < 2:
             return None
         return split_options
-
-    def create_db_connection(self, db_file):
-        """
-        Creates and returns connection to SQLite database.
-        Partially completed and unused.
-
-        Positional arguments:
-            db_file (str): Filename of the sqlite database.
-
-        TODO: Probably deprecate.
-        """
-        try:
-            conn = sqlite3.connect(db_file)
-            return conn
-        except FileNotFoundError as err:
-            logging.error(err)
-        return None
-
-    def initialize_db(self, conn):
-        """
-        Initializes SQLite database, creates necessary tables if they do not
-        already exist. Partially completed and unused.
-
-        Positional arguments:
-            conn: sqlite database connection.
-
-        TODO: Probably deprecate.
-        """
-        cursor = conn.cursor()
-        logging.info("Executing SQL create trials")
-        cursor.execute(
-            """
-                CREATE TABLE IF NOT EXISTS trials(
-                    title text PRIMARY KEY,
-                    description text
-                );
-            """
-        )
-        logging.info("Executing SQL create teams")
-        cursor.execute(
-            """
-                CREATE TABLE IF NOT EXISTS teams(
-                    team_name text PRIMARY KEY,
-                    trial_title integer,
-                    FOREIGN KEY (trial_title) REFERENCES trials (title)
-                );
-            """
-        )
-        logging.info("Executing SQL create trials")
-        cursor.execute(
-            """
-                CREATE TABLE IF NOT EXISTS votes(
-                    user_name text PRIMARY KEY,
-                    team_name integer,
-                    trial_title text,
-                    FOREIGN KEY (team_name) REFERENCES teams(team_name),
-                    FOREIGH KEY (trial_title) REFERENCES trials(title)
-                );
-            """
-        )
-
-    def save_to_db(self, conn):
-        """
-        Saves current trial to the sqlite database.
-        Partially completed and unused.
-
-        Positional arguments:
-            conn: sqlite database connection.
-
-        TODO: Probably deprecate.
-        """
-        cursor = conn.cursor()
-        status_dict = self.trials[self.current_trial_index].status()
-        cursor.execute(
-            """
-                INSERT OR REPLACE INTO trials(title, description)
-                VALUES (?, ?)
-            """, (status_dict['title'], status_dict['description'])
-        )
-        for team in status_dict['votes'].keys():
-            print(team)
-            cursor.execute(
-                """
-                    INSERT OR REPLACE INTO teams(team_name)
-                    VALUES (?)
-                """, (team,)
-            )
-            execute_list = []
-            for item in status_dict['votes'][team]:
-                execute_list.append([item, team, status_dict['title']])
-            logging.info("EXECUTE LIST" + str(execute_list))
-            cursor.executemany(
-                """
-                    INSERT OR REPLACE INTO votes(user_name, team_name,
-                                                 trial_name)
-                    VALUES (?, ?, ?)
-                """, execute_list
-            )
-        conn.commit()
 
     @bot.event
     async def on_ready():
@@ -410,14 +305,3 @@ class TrialBot:
         Dylan you old fart.
         """
         await ctx.send('https://imgur.com/0RGV10v')
-
-    @bot.command()
-    async def save(ctx):
-        """
-        Command interface to call save_to_db(). Unused.
-
-        TODO: Throw in garbage.
-        """
-        conn = TrialBot.create_db_connection(TrialBot, os.path.join(BASE_DIR, 'db.sqlite3'))
-        TrialBot.save_to_db(TrialBot, conn)
-        conn.close()
