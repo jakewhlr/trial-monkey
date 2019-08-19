@@ -58,6 +58,25 @@ class Trial:
             output_list.append(self.teams[team]["emoji"])
         return output_list
 
+    def get_teams(self):
+        """
+        Gets a list of teams.
+
+        :return: List of teams.
+        """
+        return list(self.teams.keys())
+
+    def get_votes(self, team):
+        """
+        Gets a list of votes for a given team.
+
+        :param team: Team name to get votes from.
+        :return: List of users.
+        """
+        if not team in self.teams.keys():
+            return None
+        return self.teams[team]["votes"]
+
     def vote(self, emoji, username):
         """
         Clears user from other teams and adds them to given team.
@@ -95,6 +114,20 @@ class Trial:
             }
             output_dict["fields"].append(current_field)
         return output_dict
+
+    def rename(self, old_name, new_name):
+        """
+        Renames team old_name to new_name if old_name exists.
+
+        :param old_name: Name of team to rename.
+        :param new_name: Name to rename to.
+        :return: 0 for success, 1 for failure
+        """
+        if not old_name.lower() in self.teams.keys():
+            return 1
+
+        self.teams[new_name.lower()] = self.teams.pop(old_name.lower())
+        return 0
 
 
 class TrialMonkey:
@@ -201,3 +234,13 @@ class TrialMonkey:
         self.trials.remove(self.current_trial)
         self.current_trial = None
         return 0
+
+    def rename(self, old_name, new_name):
+        """
+        Renames team old_name to new_name if old_name exists in current trial.
+
+        :param old_name: Name of team to rename.
+        :param new_name: Name to rename to.
+        :return: 0 for success, 1 for failure
+        """
+        return self.current_trial.rename(old_name, new_name)

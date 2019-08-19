@@ -4,91 +4,45 @@ Test cases for methods of trialbot.core.trial.Trial.
 
 from trialbot.core.trial import Trial
 
-
 def test_initialize():
     """
     Initializes new trial, checks for votes structure.
     """
     test_trial = Trial(teams=["good", "evil"])
     assert test_trial.title == "Good vs. Evil"
-    assert test_trial.votes == {
-        "good": [],
-        "evil": [],
-        "fence": []
-    }
-
+    assert test_trial.get_teams() == ["fence", "good", "evil"]
+    assert test_trial.teams["fence"]["votes"] == []
+    assert test_trial.teams["good"]["votes"] == []
+    assert test_trial.teams["evil"]["votes"] == []
 
 def test_vote():
     """
     Tests stages of voting and vote changing.
     """
     test_trial = Trial(teams=["good", "evil"])
-    test_trial.vote("good", "Luke")
-    assert test_trial.votes == {
-        "good": ["Luke"],
-        "fence": [],
-        "evil": []
-    }
-    test_trial.vote("evil", "Vader")
-    assert test_trial.votes == {
-        "good": ["Luke"],
-        "fence": [],
-        "evil": ["Vader"]
-    }
-    test_trial.vote("good", "Vader")
-    assert test_trial.votes == {
-        "good": ["Luke", "Vader"],
-        "fence": [],
-        "evil": []
-    }
+
+    test_trial.vote('1⃣', "Luke")
+    assert test_trial.get_votes("good") == ["Luke"]
+
+    test_trial.vote('2⃣', "Vader")
+    assert test_trial.get_votes("evil") == ["Vader"]
+
+    test_trial.vote('1⃣', "Vader")
+    assert test_trial.get_votes("good") == ["Luke", "Vader"]
+    assert test_trial.get_votes("evil") == []
 
 
-def test_status():
+def test_rename():
     """
-    Tests initial status, and status after voting.
+    Test renaming of trial team
+    :return:
     """
-    test_trial = Trial(teams=["good", "evil"])
-    expected_output = {
-        "title": "Good vs. Evil",
-        "description": "",
-        "votes": {
-            "good": [],
-            "fence": [],
-            "evil": []
-        }
-    }
-    assert test_trial.status() == expected_output
-    test_trial.vote("good", "Luke")
-    expected_output = {
-        "title": "Good vs. Evil",
-        "description": "",
-        "votes": {
-            "good": ["Luke"],
-            "fence": [],
-            "evil": []
-        }
-    }
-    assert test_trial.status() == expected_output
-    test_trial.vote("evil", "Vader")
-    expected_output = {
-        "title": "Good vs. Evil",
-        "description": "",
-        "votes": {
-            "good": ["Luke"],
-            "fence": [],
-            "evil": ["Vader"]
-        }
-    }
-    assert test_trial.status() == expected_output
-    test_trial.vote("fence", "Vader")
-    test_trial.vote("good", "Vader")
-    expected_output = {
-        "title": "Good vs. Evil",
-        "description": "",
-        "votes": {
-            "good": ["Luke", "Vader"],
-            "fence": [],
-            "evil": []
-        }
-    }
-    assert test_trial.status() == expected_output
+    rename_trial = Trial(["good", "evil"])
+
+    return_code = rename_trial.rename("gooood", "neutral")
+    assert return_code == 1
+    assert rename_trial.get_teams() == ["fence", "good", "evil"]
+
+    return_code = rename_trial.rename("good", "neutral")
+    assert return_code == 0
+    assert rename_trial.get_teams() == ["fence", "evil", "neutral"]

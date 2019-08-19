@@ -259,6 +259,11 @@ class TrialBot:
         TrialBot.trial_monkey.select(index)
         await TrialBot.status.invoke(ctx)
 
+    @bot.command()
+    async def rename(ctx, old_name, new_name):
+        TrialBot.trial_monkey.rename(old_name, new_name)
+        await TrialBot.status.invoke(ctx)
+
     @bot.command(aliases=['oldman', 'Godimold!', 'fandangled', 'fuckingmillenials'])
     async def boomer(ctx):
         """
