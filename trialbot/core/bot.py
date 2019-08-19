@@ -36,6 +36,7 @@ class TrialBot:
 
     def __init__(self, token):
         self.token = token
+        self.current_status_message = None
 
     async def start(self):
         """
@@ -125,6 +126,13 @@ class TrialBot:
             return False
         return True
 
+    def valid_reaction(self, reaction, user):
+        if reaction.message.id != self.current_status_message.id:
+            return False
+        if user == self.bot.user:
+            return False
+        return True
+
     def split_args(self, args_string):
         """
         Splits a string denoting a trial (i.e. Good vs. Evil) into a
@@ -158,17 +166,13 @@ class TrialBot:
 
         TODO: Local variables for shorter lines.
         """
-        is_valid_reaction = TrialBot.check_valid_reaction(TrialBot,
-                                                          bot_user_id=user.id,
-                                                          status_message_id=TrialBot.trials[TrialBot.current_trial_index].status_message.id,
-                                                          message_id=reaction.message.id,
-                                                          user_id=reaction.message.author.id,
-                                                          emoji=str(reaction))
-        if is_valid_reaction:
+        if TrialBot.valid_reaction(TrialBot, reaction, user):
             try:
-                TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)], user.display_name)
+                TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)],
+                                                                   user.display_name)
                 await reaction.remove(user)
-                await TrialBot.trials[TrialBot.current_trial_index].status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
+                await TrialBot.trials[TrialBot.current_trial_index].status_message.edit(
+                    embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
                 return 0
             except discord.DiscordException as err:
                 logging.error(err)
@@ -220,7 +224,7 @@ class TrialBot:
                 await TrialBot.trials[TrialBot.current_trial_index].status_message.delete()
 
             TrialBot.trials[TrialBot.current_trial_index].status_message = await ctx.send(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
-
+            TrialBot.current_status_message = TrialBot.trials[TrialBot.current_trial_index].status_message
             for emoji in TrialBot.assigned_emoji:
                 await TrialBot.trials[TrialBot.current_trial_index].status_message.add_reaction(emoji)
                 sleep(0.5)
