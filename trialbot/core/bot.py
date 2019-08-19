@@ -12,7 +12,7 @@ import os
 import discord
 from discord.ext import commands
 
-from .trial import Trial
+from .trial import TrialMonkey
 
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -33,9 +33,13 @@ class TrialBot:
     token = None
     assigned_emoji = {}
     assigned_emoji_inv = {}
+    trial_monkey = TrialMonkey()
+    current_status_message = None
+
 
     def __init__(self, token):
         self.token = token
+        self.current_status_message = None
 
     async def start(self):
         """
@@ -125,6 +129,13 @@ class TrialBot:
             return False
         return True
 
+    def valid_reaction(self, reaction, user):
+        if reaction.message.id != self.current_status_message.id:
+            return False
+        if user == self.bot.user:
+            return False
+        return True
+
     def split_args(self, args_string):
         """
         Splits a string denoting a trial (i.e. Good vs. Evil) into a
@@ -158,17 +169,13 @@ class TrialBot:
 
         TODO: Local variables for shorter lines.
         """
-        is_valid_reaction = TrialBot.check_valid_reaction(TrialBot,
-                                                          bot_user_id=user.id,
-                                                          status_message_id=TrialBot.trials[TrialBot.current_trial_index].status_message.id,
-                                                          message_id=reaction.message.id,
-                                                          user_id=reaction.message.author.id,
-                                                          emoji=str(reaction))
-        if is_valid_reaction:
+        if TrialBot.valid_reaction(TrialBot, reaction, user):
             try:
-                TrialBot.trials[TrialBot.current_trial_index].vote(TrialBot.assigned_emoji[str(reaction)], user.display_name)
+                TrialBot.trial_monkey.vote(reaction.emoji, user.display_name)
                 await reaction.remove(user)
-                await TrialBot.trials[TrialBot.current_trial_index].status_message.edit(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
+                embed_object = discord.Embed.from_dict(TrialBot.trial_monkey.status())
+                await TrialBot.current_status_message.edit(
+                    embed=embed_object)
                 return 0
             except discord.DiscordException as err:
                 logging.error(err)
@@ -192,18 +199,11 @@ class TrialBot:
 
         TODO: Local variables for long lines.
         """
-        args_list = TrialBot.split_args(TrialBot, arg)
-        if not args_list:
-            return 0
 
         await TrialBot.gif.invoke(ctx)
         sleep(random.randint(3, 10))
 
-        TrialBot.trials.append(Trial(teams=args_list))
-        TrialBot.current_trial_index = len(TrialBot.trials) - 1
-
-        TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.trials[TrialBot.current_trial_index].votes.keys()))
-        TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
+        TrialBot.trial_monkey.new_trial(arg)
 
         await TrialBot.status.invoke(ctx)
 
@@ -215,17 +215,13 @@ class TrialBot:
 
         TODO: Local variables for long lines.
         """
-        try:
-            if TrialBot.trials[TrialBot.current_trial_index].status_message:
-                await TrialBot.trials[TrialBot.current_trial_index].status_message.delete()
-
-            TrialBot.trials[TrialBot.current_trial_index].status_message = await ctx.send(embed=TrialBot.gen_status_embed(TrialBot, TrialBot.trials[TrialBot.current_trial_index]))
-
-            for emoji in TrialBot.assigned_emoji:
-                await TrialBot.trials[TrialBot.current_trial_index].status_message.add_reaction(emoji)
-                sleep(0.5)
-        except (ValueError, discord.DiscordException) as err:
-            logging.error(err)
+        status_dict = TrialBot.trial_monkey.status()
+        embed_object = discord.Embed.from_dict(status_dict)
+        TrialBot.current_status_message = await ctx.send(embed=embed_object)
+        assigend_emoji = TrialBot.trial_monkey.get_emoji()
+        for item in assigend_emoji:
+            await TrialBot.current_status_message.add_reaction(item)
+            sleep(0.5)
 
     @bot.command(aliases=["adjourned", "end", "close"])
     async def adjourn(ctx):
@@ -236,27 +232,8 @@ class TrialBot:
         TODO: Deselect trial/Set index to None.
         TODO: Local variables for long lines.
         """
+        TrialBot.trial_monkey.adjourn()
         await ctx.send('COURT ADJOURNED')
-
-        left_total = len(TrialBot.trials[TrialBot.current_trial_index].standings['left'])
-        right_total = len(TrialBot.trials[TrialBot.current_trial_index].standings['right'])
-
-        if left_total == right_total:
-            await ctx.send("It's a tie!")
-            await ctx.send("You both suck")
-            return 0
-
-        if left_total > right_total:
-            await ctx.send("%s wins with %d votes!" % (TrialBot.trials[TrialBot.current_trial_index].left_name, left_total))
-            await ctx.send("Suck it %s" % TrialBot.trials[TrialBot.current_trial_index].right_name)
-            return 0
-
-        if right_total > left_total:
-            await ctx.send("%s wins with %d votes!" % (TrialBot.trials[TrialBot.current_trial_index].right_name, right_total))
-            await ctx.send("Suck it %s" % TrialBot.trials[TrialBot.current_trial_index].left_name)
-            return 0
-
-        return 1
 
     @bot.command()
     async def list(ctx):
@@ -265,15 +242,9 @@ class TrialBot:
 
         TODO: Prettify message.
         """
-        output_list = []
-        for index, item in enumerate(TrialBot.trials):
-            if index is TrialBot.current_trial_index:
-                output_list.append("**%s. %s**" % (str(index), item.title))
-            else:
-                output_list.append("%s. %s" % (str(index), item.title))
-
-        output_message = '\n'.join(output_list)
-        await ctx.send(">>> __**Available Arguments**__\n" + output_message)
+        list_dict = TrialBot.trial_monkey.list()
+        embed_object = discord.Embed.from_dict(list_dict)
+        await ctx.send(embed=embed_object)
 
     @bot.command()
     async def select(ctx, index):
@@ -285,19 +256,8 @@ class TrialBot:
 
         TODO: Fix long lines.
         """
-        try:
-            if int(index) < len(TrialBot.trials):
-                TrialBot.current_trial_index = int(index)
-
-                TrialBot.assigned_emoji = dict(zip(EMOJI, TrialBot.trials[TrialBot.current_trial_index].votes.keys()))
-                TrialBot.assigned_emoji_inv = {v: k for k, v in TrialBot.assigned_emoji.items()}
-
-                await ctx.send("Selected %s" % TrialBot.trials[TrialBot.current_trial_index].title)
-
-                return 0
-            return 1
-        except discord.DiscordException as err:
-            logging.error(err)
+        TrialBot.trial_monkey.select(index)
+        await TrialBot.status.invoke(ctx)
 
     @bot.command(aliases=['oldman', 'Godimold!', 'fandangled', 'fuckingmillenials'])
     async def boomer(ctx):
