@@ -118,16 +118,11 @@ class TrialBot:
                     and bake this into on_reaction_add.
         """
         if message_id != status_message_id:
-            logging.info("Failed at message id")
-            logging.info(message_id)
-            logging.info(status_message_id)
             return False
         if user_id == bot_user_id:
-            logging.info("Failed at user id")
             return False
         if emoji not in self.assigned_emoji.keys():
-            logging.info("Failed at emoji")
-            logging.info(str(self.assigned_emoji.keys()))
+            logging.info("Ignoring invalid emoji {} on message {}".format(emoji, message_id))
             return False
         return True
 

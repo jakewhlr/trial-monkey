@@ -17,7 +17,7 @@ def test_set_command_prefix():
     Set command prefix, check value.
     """
     test_bot = TrialBot("sometoken1234")
-    assert test_bot.bot.command_prefix == '!'
+    assert test_bot.bot.command_prefix == 'trialmonkey!'
     test_bot.set_command_prefix("test_command_prefix")
     assert test_bot.bot.command_prefix == "test_command_prefix"
     del test_bot
