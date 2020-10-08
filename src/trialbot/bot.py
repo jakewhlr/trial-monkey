@@ -190,7 +190,7 @@ class TrialBot:
         """
         Sends random gif from gifs.txt.
         """
-        gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, '/docs/gifs.txt'))]
+        gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'docs/gifs.txt'))]
         monkey_gif = random.choice(gifs)
         await ctx.send(monkey_gif)
 
