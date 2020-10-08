@@ -1,8 +1,7 @@
 """
-Test cases for methods of trialbot.core.trial.Trial.
+Test cases for methods of trialbot.trial.Trial.
 """
-
-from trialbot.core.trial import Trial
+from src.trialbot.trial import Trial
 
 def test_initialize():
     """
