@@ -22,20 +22,20 @@ ARGS = PARSER.parse_args()
 
 
 def main():
-    """
-    Loads config file, initializes TrialBot.
-    """
-    try:
-        os.system('clear')
-        config = json.load(ARGS.config)
-        token = config[ARGS.env]['token']
-        bot = TrialBot(token)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(bot.start())
-        loop.close()
-    except KeyboardInterrupt:
-        print('Exiting')
+  """
+  Loads config file, initializes TrialBot.
+  """
+  try:
+    os.system('clear')
+    config = json.load(ARGS.config)
+    token = config[ARGS.env]['token']
+    bot = TrialBot(token)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(bot.start())
+    loop.close()
+  except KeyboardInterrupt:
+    print('Exiting')
 
 
 if __name__ == '__main__':
-    main()
+  main()
