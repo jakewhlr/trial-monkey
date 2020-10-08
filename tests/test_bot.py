@@ -1,24 +1,23 @@
 """
-Test cases for methods of trialbot.core.bot.TrialBot.
+Test cases for methods of trialbot.bot.TrialBot.
 """
-
-from trialbot.core.bot import TrialBot
+from src.trialbot.bot import TrialBot
 
 
 def test_init():
     """
     Initialize a TrialBot, check values.
     """
-    test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
-    assert test_bot.token == "afj34q9opf8ihaf44f8hasef"
+    test_bot = TrialBot("sometoken1234")
+    assert test_bot.token == "sometoken1234"
 
 
 def test_set_command_prefix():
     """
     Set command prefix, check value.
     """
-    test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
-    assert test_bot.bot.command_prefix == '!'
+    test_bot = TrialBot("sometoken1234")
+    assert test_bot.bot.command_prefix == 'trialmonkey!'
     test_bot.set_command_prefix("test_command_prefix")
     assert test_bot.bot.command_prefix == "test_command_prefix"
     del test_bot
@@ -31,7 +30,7 @@ def test_check_valid_reaction():
     TODO - Write bot.new_trial() function + test.
     Test case 4 depends ^
     """
-    test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
+    test_bot = TrialBot("sometoken1234")
 
     response = test_bot.check_valid_reaction(
         bot_user_id=1234,
@@ -77,7 +76,7 @@ def test_split_args():
     """
     Tests parsing and spliting of arguments via new() method.
     """
-    test_bot = TrialBot("afj34q9opf8ihaf44f8hasef")
+    test_bot = TrialBot("sometoken1234")
 
     output = test_bot.split_args("One v. Two")
     assert output == ["One", "Two"]

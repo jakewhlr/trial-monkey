@@ -14,7 +14,7 @@ from discord.ext import commands
 
 from .trial import TrialMonkey
 
-BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
+BASE_DIR = os.path.join(os.path.dirname(__file__), '../..')
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 EMOJI = ['🤺', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣']
@@ -36,7 +36,6 @@ class TrialBot:
     trial_monkey = TrialMonkey()
     current_status_message = None
 
-
     def __init__(self, token):
         self.token = token
         self.current_status_message = None
@@ -53,7 +52,7 @@ class TrialBot:
         Returns a discord.Embed object from the status of the current trial.
 
         Positional arguments:
-            trial (Trial): The current trial object
+                trial (Trial): The current trial object
         """
         status_dict = trial.status()
         status_embed = discord.Embed()
@@ -87,18 +86,26 @@ class TrialBot:
         bot user's username).
 
         Positional arguments:
-            new_command_prefix (str): The command prefix to set,
-                typically the username of the bot user.
+                new_command_prefix (str): The command prefix to set,
+                        typically the username of the bot user.
         """
         if new_command_prefix:
             self.bot.command_prefix = new_command_prefix
-            logging.info("Set bot prefix to: '{}'".format(self.bot.command_prefix))
+            logging.info(
+                "Set bot prefix to: '{}'".format(self.bot.command_prefix)
+            )
         else:
+            logging.error("Failed to set bot prefix")
             raise ValueError
 
-    def check_valid_reaction(self, bot_user_id=None, user_id=None,
-                             status_message_id=None, message_id=None,
-                             emoji=None):
+    def check_valid_reaction(
+        self,
+        bot_user_id=None,
+        user_id=None,
+        status_message_id=None,
+        message_id=None,
+        emoji=None
+    ):
         """
         Checks the the reaction for valididty. The reaction is valid if:
         the reacting user is not the bot user, the message reacted to is
@@ -114,19 +121,19 @@ class TrialBot:
 
         TODO: Lower amount of arguments, maybe use kwargs.
         TODO: Accept that this won't be properly tested
-              and bake this into on_reaction_add.
+                    and bake this into on_reaction_add.
         """
         if message_id != status_message_id:
-            logging.info("Failed at message id")
-            logging.info(message_id)
-            logging.info(status_message_id)
             return False
         if user_id == bot_user_id:
-            logging.info("Failed at user id")
             return False
         if emoji not in self.assigned_emoji.keys():
-            logging.info("Failed at emoji")
-            logging.info(str(self.assigned_emoji.keys()))
+            logging.info(
+                "Ignoring invalid emoji {} on message {}".format(
+                    emoji,
+                    message_id
+                )
+            )
             return False
         return True
 
@@ -157,7 +164,9 @@ class TrialBot:
         """
         Function is called when the bot has successfully connected to a server.
         """
-        TrialBot.set_command_prefix(TrialBot, "<@!{}> ".format(TrialBot.bot.user.id))
+        TrialBot.set_command_prefix(TrialBot, "<@!{}> ".format(
+            TrialBot.bot.user.id)
+        )
 
     @bot.event
     async def on_reaction_add(reaction, user):
@@ -165,8 +174,8 @@ class TrialBot:
         Function is called when a reaction is added to a message.
 
         Positional arguments:
-            reaction: The reaction object that was added.
-            user: The user object who added the reaction.
+                reaction: The reaction object that was added.
+                user: The user object who added the reaction.
 
         TODO: Local variables for shorter lines.
         """
@@ -174,7 +183,9 @@ class TrialBot:
             try:
                 TrialBot.trial_monkey.vote(reaction.emoji, user.display_name)
                 await reaction.remove(user)
-                embed_object = discord.Embed.from_dict(TrialBot.trial_monkey.status())
+                embed_object = discord.Embed.from_dict(
+                    TrialBot.trial_monkey.status()
+                )
                 await TrialBot.current_status_message.edit(
                     embed=embed_object)
                 return 0
@@ -189,11 +200,16 @@ class TrialBot:
         """
         Sends random gif from gifs.txt.
         """
-        gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'gifs.txt'))]
+        gifs = [line.rstrip('\n') for line in open(os.path.join(
+            BASE_DIR, 'docs/gifs.txt'))]
         monkey_gif = random.choice(gifs)
         await ctx.send(monkey_gif)
 
-    @bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
+    @bot.command(
+        pass_context=True,
+        help="Creates new trial",
+        usage="(<plaintiff> <defendant>)"
+    )
     async def new(ctx, *, arg):
         """
         Creates new trial from arg string.
@@ -208,8 +224,10 @@ class TrialBot:
 
         await TrialBot.status.invoke(ctx)
 
-    @bot.command(help="Shows status of given trial (default=current)",
-                 usage="[<trial_number>]")
+    @bot.command(
+        help="Shows status of given trial (default=current)",
+        usage="[<trial_number>]"
+    )
     async def status(ctx):
         """
         Sends Embed object of current trial status.
@@ -253,7 +271,7 @@ class TrialBot:
         Changes current trial to the given index, if it is valid.
 
         Positional arguments:
-            index (int): Index of trial to select, from self.list()
+                index (int): Index of trial to select, from self.list()
 
         TODO: Fix long lines.
         """
@@ -264,10 +282,3 @@ class TrialBot:
     async def rename(ctx, old_name, new_name):
         TrialBot.trial_monkey.rename(old_name, new_name)
         await TrialBot.status.invoke(ctx)
-
-    @bot.command(aliases=['oldman', 'Godimold!', 'fandangled', 'fuckingmillenials'])
-    async def boomer(ctx):
-        """
-        Dylan you old fart.
-        """
-        await ctx.send('https://imgur.com/0RGV10v')

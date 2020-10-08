@@ -6,8 +6,6 @@ import re
 
 
 class Trial:
-
-
     """
     This is a class for tracking and voting on a trial or argument.
 
@@ -21,7 +19,7 @@ class Trial:
     def __init__(self, teams=None):
         """
         Initializes a trial with a list of teams for voting.
-        
+
         :param teams: List of team names
         """
         self.title = " vs. ".join(i.title() for i in teams)
@@ -30,8 +28,10 @@ class Trial:
         self.teams['fence'] = {"emoji": '🤺', "votes": []}
         self.emoji_list = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣']
         for item in teams:
-            self.teams[item.lower()] = {"emoji": self.emoji_list.pop(0), "votes": []}
-
+            self.teams[item.lower()] = {
+                "emoji": self.emoji_list.pop(0),
+                "votes": []
+            }
 
     def __str__(self):
         """
@@ -73,7 +73,7 @@ class Trial:
         :param team: Team name to get votes from.
         :return: List of users.
         """
-        if not team in self.teams.keys():
+        if team not in self.teams.keys():
             return None
         return self.teams[team]["votes"]
 
@@ -93,11 +93,16 @@ class Trial:
 
     def status(self):
         """
-        Generates dict of current voting status compatible with Discord embed object.
+        Generates dict of current voting status compatible with Discordembed
+        object.
 
         :return: Dict of current status.
         """
-        output_dict = {"title": self.title, "description": self.description, "fields": []}
+        output_dict = {
+            "title": self.title,
+            "description": self.description,
+            "fields": []
+        }
         for team in self.teams:
             if team == "fence":
                 name = "The Fence"
@@ -161,7 +166,7 @@ class TrialMonkey:
         Creates a new trial from the arg string.
 
         :param args_string: String of the different sides of a trial.
-                            Should be in the form Team (v | v. | vs | vs. | versus) Team.
+                Should be in the form Team (v | v. | vs | vs. | versus) Team.
         :return: 0 for success, nonzero for failure.
         """
         split_teams = re.split(' v | v. | vs | vs. | versus ', args_string)

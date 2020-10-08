@@ -1,8 +1,8 @@
 """
-Test cases for methods of trialbot.core.trial.Trial.
+Test cases for methods of trialbot.trial.Trial.
 """
+from src.trialbot.trial import Trial
 
-from trialbot.core.trial import Trial
 
 def test_initialize():
     """
@@ -14,6 +14,7 @@ def test_initialize():
     assert test_trial.teams["fence"]["votes"] == []
     assert test_trial.teams["good"]["votes"] == []
     assert test_trial.teams["evil"]["votes"] == []
+
 
 def test_vote():
     """

@@ -12,3 +12,4 @@ config.json
 *.sqlite3
 
 .DS_Store
+.vscode
