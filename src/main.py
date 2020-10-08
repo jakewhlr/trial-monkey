@@ -13,11 +13,20 @@ from trialbot.bot import TrialBot
 BASE_DIR = os.path.join(os.path.dirname(__file__))
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('-c', '--config', help='config json',
-                                        type=argparse.FileType('r'), required=True)
-PARSER.add_argument('-e', '--env', type=str, help='environment',
-                                        choices=['production', 'staging'], required=False,
-                                        default='production')
+PARSER.add_argument(
+    '-c', '--config',
+    help='config json',
+    type=argparse.FileType('r'),
+    required=True
+)
+PARSER.add_argument(
+    '-e', '--env',
+    type=str,
+    help='environment',
+    choices=['production', 'staging'],
+    required=False,
+    default='production'
+)
 ARGS = PARSER.parse_args()
 
 

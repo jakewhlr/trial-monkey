@@ -3,6 +3,7 @@ Test cases for methods of trialbot.trial.Trial.
 """
 from src.trialbot.trial import Trial
 
+
 def test_initialize():
     """
     Initializes new trial, checks for votes structure.
@@ -13,6 +14,7 @@ def test_initialize():
     assert test_trial.teams["fence"]["votes"] == []
     assert test_trial.teams["good"]["votes"] == []
     assert test_trial.teams["evil"]["votes"] == []
+
 
 def test_vote():
     """

@@ -36,7 +36,6 @@ class TrialBot:
     trial_monkey = TrialMonkey()
     current_status_message = None
 
-
     def __init__(self, token):
         self.token = token
         self.current_status_message = None
@@ -92,14 +91,21 @@ class TrialBot:
         """
         if new_command_prefix:
             self.bot.command_prefix = new_command_prefix
-            logging.info("Set bot prefix to: '{}'".format(self.bot.command_prefix))
+            logging.info(
+                "Set bot prefix to: '{}'".format(self.bot.command_prefix)
+            )
         else:
             logging.error("Failed to set bot prefix")
             raise ValueError
 
-    def check_valid_reaction(self, bot_user_id=None, user_id=None,
-                                                        status_message_id=None, message_id=None,
-                                                        emoji=None):
+    def check_valid_reaction(
+        self,
+        bot_user_id=None,
+        user_id=None,
+        status_message_id=None,
+        message_id=None,
+        emoji=None
+    ):
         """
         Checks the the reaction for valididty. The reaction is valid if:
         the reacting user is not the bot user, the message reacted to is
@@ -122,7 +128,12 @@ class TrialBot:
         if user_id == bot_user_id:
             return False
         if emoji not in self.assigned_emoji.keys():
-            logging.info("Ignoring invalid emoji {} on message {}".format(emoji, message_id))
+            logging.info(
+                "Ignoring invalid emoji {} on message {}".format(
+                    emoji,
+                    message_id
+                )
+            )
             return False
         return True
 
@@ -153,7 +164,9 @@ class TrialBot:
         """
         Function is called when the bot has successfully connected to a server.
         """
-        TrialBot.set_command_prefix(TrialBot, "<@!{}> ".format(TrialBot.bot.user.id))
+        TrialBot.set_command_prefix(TrialBot, "<@!{}> ".format(
+            TrialBot.bot.user.id)
+        )
 
     @bot.event
     async def on_reaction_add(reaction, user):
@@ -170,7 +183,9 @@ class TrialBot:
             try:
                 TrialBot.trial_monkey.vote(reaction.emoji, user.display_name)
                 await reaction.remove(user)
-                embed_object = discord.Embed.from_dict(TrialBot.trial_monkey.status())
+                embed_object = discord.Embed.from_dict(
+                    TrialBot.trial_monkey.status()
+                )
                 await TrialBot.current_status_message.edit(
                     embed=embed_object)
                 return 0
@@ -185,11 +200,16 @@ class TrialBot:
         """
         Sends random gif from gifs.txt.
         """
-        gifs = [line.rstrip('\n') for line in open(os.path.join(BASE_DIR, 'docs/gifs.txt'))]
+        gifs = [line.rstrip('\n') for line in open(os.path.join(
+            BASE_DIR, 'docs/gifs.txt'))]
         monkey_gif = random.choice(gifs)
         await ctx.send(monkey_gif)
 
-    @bot.command(pass_context=True, help="Creates new trial", usage="(<plaintiff> <defendant>)")
+    @bot.command(
+        pass_context=True,
+        help="Creates new trial",
+        usage="(<plaintiff> <defendant>)"
+    )
     async def new(ctx, *, arg):
         """
         Creates new trial from arg string.
@@ -204,8 +224,10 @@ class TrialBot:
 
         await TrialBot.status.invoke(ctx)
 
-    @bot.command(help="Shows status of given trial (default=current)",
-                             usage="[<trial_number>]")
+    @bot.command(
+        help="Shows status of given trial (default=current)",
+        usage="[<trial_number>]"
+    )
     async def status(ctx):
         """
         Sends Embed object of current trial status.
