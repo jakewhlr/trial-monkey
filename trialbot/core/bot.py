@@ -27,7 +27,7 @@ class TrialBot:
     __version__ = '0.0.1'
 
     client = discord.Client()
-    bot = commands.Bot(command_prefix='!', case_insensitive=True)
+    bot = commands.Bot(command_prefix='trialmonkey!', case_insensitive=True)
     trials = []
     current_trial_index = None
     token = None
@@ -92,6 +92,7 @@ class TrialBot:
         """
         if new_command_prefix:
             self.bot.command_prefix = new_command_prefix
+            logging.info("Set bot prefix to: '{}'".format(self.bot.command_prefix))
         else:
             raise ValueError
 
@@ -156,7 +157,7 @@ class TrialBot:
         """
         Function is called when the bot has successfully connected to a server.
         """
-        TrialBot.set_command_prefix(TrialBot, "<@%s> " % TrialBot.bot.user.id)
+        TrialBot.set_command_prefix(TrialBot, "<@!{}> ".format(TrialBot.bot.user.id))
 
     @bot.event
     async def on_reaction_add(reaction, user):
