@@ -14,18 +14,68 @@ from discord.ext import commands
 
 from .trial import TrialMonkey
 
-BASE_DIR = os.path.join(os.path.dirname(__file__), '../..')
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 EMOJI = ['🤺', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣']
+
+GIFS = [
+    "https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif",
+    "https://media.giphy.com/media/pFwRzOLfuGHok/giphy.gif",
+    "https://media.giphy.com/media/X7NFveezX68Cc/giphy.gif",
+    "https://media.giphy.com/media/T8Dhl1KPyzRqU/giphy.gif",
+    "https://media.giphy.com/media/jR8EDxMbqi1QQ/giphy.gif",
+    "https://media.giphy.com/media/VjAB0fOmK15Ze/giphy.gif",
+    "https://media.giphy.com/media/MVwMFGdw1KIuI/giphy.gif",
+    "https://media.giphy.com/media/URW2lPzihY5fq/giphy.gif",
+    "https://media.giphy.com/media/RETg1tippXtNm/giphy.gif",
+    "https://media.giphy.com/media/wGlm5NGNBcyI0/giphy.gif",
+    "https://media.giphy.com/media/st7q18mjEvCbm/giphy.gif",
+    "https://media.giphy.com/media/l4FGFT5D4NKA9rGxy/giphy.gif",
+    "https://media.giphy.com/media/3oEdv1EbS2Ss1NvrUc/giphy.gif",
+    "https://media.giphy.com/media/3o85xC73J7y0c9wJWM/giphy.gif",
+    "https://media.giphy.com/media/xTiTnnGAwpXyng7pny/giphy.gif",
+    "https://media.giphy.com/media/jR8EDxMbqi1QQ/giphy.gif",
+    "https://media.giphy.com/media/wGlm5NGNBcyI0/giphy.gif",
+    "https://media.giphy.com/media/GVLcJTdkaCSD6/giphy.gif",
+    "https://media.giphy.com/media/LnaO0DlxGsHZK/giphy.gif",
+    "https://media.giphy.com/media/2tRBdHz4Wwhyw/giphy.gif",
+    "https://media.giphy.com/media/1slz5O6wPTR96/giphy.gif",
+    "https://media.giphy.com/media/H4zeDO4ocDYqY/giphy.gif",
+    "https://media.giphy.com/media/OLY40BwPRUWic/giphy.gif",
+    "https://media.giphy.com/media/BhW85yDQ1TA3u/giphy.gif",
+    "https://media.giphy.com/media/10ORk7l5EDa4JG/giphy.gif",
+    "https://media.giphy.com/media/jAhQUPJwoFVK/giphy.gif",
+    "https://media.giphy.com/media/SDeVLvFCqFsSA/giphy.gif",
+    "https://media.giphy.com/media/BhW85yDQ1TA3u/giphy.gif",
+    "https://media.giphy.com/media/bLHJ71uLsgqWI/giphy.gif",
+    "https://media.giphy.com/media/xTtWfzDYKUW6uFdC5w/giphy.gif",
+    "https://media.giphy.com/media/RlhQbYtETaRfG/giphy.gif",
+    "https://media.giphy.com/media/1229mlttgo8aR2/giphy.gif",
+    "https://media.giphy.com/media/5xaOcLQr8f0BDMf5FT2/giphy.gif",
+    "https://media.giphy.com/media/ToMjGpA1hOaWo1LoWgE/giphy.gif",
+    "https://media.giphy.com/media/Ujgg3ApoTGoKs/giphy.gif",
+    "https://media.giphy.com/media/OLY40BwPRUWic/giphy.gif",
+    "https://media.giphy.com/media/1316cEyMAtS3GE/giphy.gif",
+    "https://media.giphy.com/media/5cdenDXni65aM/giphy.gif",
+    "https://media.giphy.com/media/8yyJH4yzqgx0Y/giphy.gif",
+    "https://media.giphy.com/media/R8s2pWPslY0dG/giphy.gif",
+    "https://media.giphy.com/media/8nhgZZMKUicpi/giphy.gif",
+    "https://media.giphy.com/media/l3q2ZNVuqIHQaJ464/giphy.gif",
+    "https://media.giphy.com/media/yLZQKurQvmIAo/giphy.gif",
+    "https://media.giphy.com/media/vBzDAe90oDE3u/giphy.gif",
+    "https://media.giphy.com/media/5UpJKX2gwruqk/giphy.gif",
+    "https://media.giphy.com/media/YKinVqdj8ZOA8/giphy.gif",
+    "https://media.giphy.com/media/YKFnKWYbKREHu/giphy.gif",
+    "https://media.giphy.com/media/1wqYonEBtues7jlngs/giphy.gif",
+    "https://media.giphy.com/media/QNFhOolVeCzPQ2Mx85/giphy.gif",
+    "https://media.giphy.com/media/mRdI3FMUexmuc/giphy.gif"
+]
 
 
 class TrialBot:
     """
     Discord bot interface for Trial class
     """
-    __version__ = '0.0.1'
-
     client = discord.Client()
     bot = commands.Bot(command_prefix='trialmonkey!', case_insensitive=True)
     trials = []
@@ -177,7 +227,6 @@ class TrialBot:
                 reaction: The reaction object that was added.
                 user: The user object who added the reaction.
 
-        TODO: Local variables for shorter lines.
         """
         if TrialBot.valid_reaction(TrialBot, reaction, user):
             try:
@@ -200,9 +249,7 @@ class TrialBot:
         """
         Sends random gif from gifs.txt.
         """
-        gifs = [line.rstrip('\n') for line in open(os.path.join(
-            BASE_DIR, 'docs/gifs.txt'))]
-        monkey_gif = random.choice(gifs)
+        monkey_gif = random.choice(GIFS)
         await ctx.send(monkey_gif)
 
     @bot.command(
@@ -213,10 +260,8 @@ class TrialBot:
     async def new(ctx, *, arg):
         """
         Creates new trial from arg string.
-
-        TODO: Local variables for long lines.
         """
-
+        logging.info("New trial: {}".format(arg))
         await TrialBot.gif.invoke(ctx)
         sleep(random.randint(3, 10))
 
@@ -231,8 +276,6 @@ class TrialBot:
     async def status(ctx):
         """
         Sends Embed object of current trial status.
-
-        TODO: Local variables for long lines.
         """
         status_dict = TrialBot.trial_monkey.status()
         embed_object = discord.Embed.from_dict(status_dict)
@@ -249,7 +292,6 @@ class TrialBot:
 
         TODO: Fix tallying.
         TODO: Deselect trial/Set index to None.
-        TODO: Local variables for long lines.
         """
         TrialBot.trial_monkey.adjourn()
         await ctx.send('COURT ADJOURNED')
